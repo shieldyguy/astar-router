@@ -1,0 +1,36 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "lib_footprint_issues": 23
+ },
+ "unconnected": 55,
+ "unconnected_by_net": {
+  "GND": 22,
+  "VBUS_C": 3,
+  "Net-(J2-CC1)": 1,
+  "USB_DP_C": 2,
+  "USB_DM_C": 2,
+  "Net-(J2-CC2)": 1,
+  "VIN": 3,
+  "USB_DP": 2,
+  "USB_DM": 1,
+  "Net-(D1-Pad2)": 1,
+  "BTN8": 1,
+  "BTN6": 1,
+  "+3V3": 5,
+  "Net-(D2-Pad2)": 1,
+  "U1TX": 1,
+  "U1RX": 1,
+  "BTN5": 1,
+  "BTN1": 1,
+  "BTN7": 1,
+  "BTN4": 1,
+  "BTN2": 1,
+  "BTN3": 1,
+  "Net-(R3-Pad2)": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

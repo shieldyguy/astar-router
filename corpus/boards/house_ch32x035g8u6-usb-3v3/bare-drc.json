@@ -1,0 +1,29 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "lib_footprint_issues": 15
+ },
+ "unconnected": 39,
+ "unconnected_by_net": {
+  "+3V3": 4,
+  "GND": 14,
+  "Net-(J1-CC1)": 1,
+  "+5V": 3,
+  "Net-(D1-Pad2)": 1,
+  "Net-(U1-PB12/T1C4_{slash}T2C2N_)": 1,
+  "Net-(D2-Pad1)": 1,
+  "Net-(R1-Pad2)": 1,
+  "VBUS_C": 3,
+  "Net-(J1-Dp1)": 2,
+  "Net-(J1-Dn1)": 2,
+  "Net-(J1-CC2)": 1,
+  "USB_DP": 2,
+  "USB_DM": 1,
+  "SWDIO": 1,
+  "SWCLK": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

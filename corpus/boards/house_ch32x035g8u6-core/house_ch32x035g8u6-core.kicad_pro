@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "filename": "ch32x035g8u6-core.kicad_pro",
+    "version": 3
+  },
+  "sheets": [
+    [
+      "5fca46c6-7a45-44cd-a06c-5a9c5223ada3",
+      "Root"
+    ]
+  ],
+  "erc": {
+    "rule_severities": {
+      "power_pin_not_driven": "warning",
+      "pin_not_driven": "warning"
+    }
+  },
+  "board": {
+    "design_settings": {
+      "rule_severities": {
+        "courtyards_overlap": "ignore"
+      }
+    }
+  },
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "text_variables": {}
+}

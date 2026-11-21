@@ -1,0 +1,19 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "lib_footprint_issues": 8
+ },
+ "unconnected": 14,
+ "unconnected_by_net": {
+  "Net-(D1-Pad1)": 1,
+  "GND": 4,
+  "+3V3": 4,
+  "VIN": 2,
+  "Net-(U1-SW)": 2,
+  "Net-(U1-BST)": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

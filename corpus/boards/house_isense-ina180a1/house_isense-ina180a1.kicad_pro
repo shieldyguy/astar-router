@@ -1,0 +1,8 @@
+{
+  "meta": {"filename": "isense-ina180a1.kicad_pro", "version": 3},
+  "sheets": [["d636ccd1-97ad-4f13-b03b-4da939dee55a", "Root"]],
+  "erc": {"rule_severities": {"power_pin_not_driven": "warning", "pin_not_driven": "warning"}},
+  "board": {"design_settings": {"rule_severities": {"courtyards_overlap": "ignore"}}},
+  "libraries": {"pinned_footprint_libs": [], "pinned_symbol_libs": []},
+  "text_variables": {}
+}

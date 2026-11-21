@@ -1,0 +1,51 @@
+(kicad_pcb (version 20221018) (generator pcbnew)
+
+  (general
+    (thickness 1.6)
+  )
+
+  (layers
+    (0 "F.Cu" signal)
+    (31 "B.Cu" signal)
+    (44 "Edge.Cuts" user)
+  )
+
+  (net 0 "")
+  (net 1 "SIG")
+  (net 2 "GND")
+
+  (footprint "lib:R" (layer "F.Cu")
+    (tstamp 00000000-0000-4000-8000-000000000001)
+    (at 5 5 90)
+    (fp_text reference "R1" (at 0 -1.5 90) (layer "F.SilkS")
+      (effects (font (size 1 1) (thickness 0.15)))
+      (tstamp 00000000-0000-4000-8000-000000000002)
+    )
+    (pad "1" smd rect (at -0.8 0 90) (size 0.8 1) (layers "F.Cu" "F.Paste" "F.Mask")
+      (net 1 "SIG") (tstamp 00000000-0000-4000-8000-000000000003))
+    (pad "2" smd rect (at 0.8 0 90) (size 0.8 1) (layers "F.Cu" "F.Paste" "F.Mask")
+      (net 2 "GND") (tstamp 00000000-0000-4000-8000-000000000004))
+  )
+
+  (footprint "lib:R" (layer "F.Cu")
+    (tstamp 00000000-0000-4000-8000-000000000005)
+    (at 15 5)
+    (fp_text reference "R2" (at 0 -1.5) (layer "F.SilkS")
+      (effects (font (size 1 1) (thickness 0.15)))
+      (tstamp 00000000-0000-4000-8000-000000000006)
+    )
+    (pad "1" smd rect (at -0.8 0) (size 0.8 1) (layers "F.Cu" "F.Paste" "F.Mask")
+      (net 1 "SIG") (tstamp 00000000-0000-4000-8000-000000000007))
+    (pad "2" smd rect (at 0.8 0) (size 0.8 1) (layers "F.Cu" "F.Paste" "F.Mask")
+      (net 2 "GND") (tstamp 00000000-0000-4000-8000-000000000008))
+  )
+
+  (gr_line (start 0 0) (end 20 0) (layer "Edge.Cuts") (width 0.1) (tstamp 00000000-0000-4000-8000-000000000009))
+  (gr_line (start 20 0) (end 20 10) (layer "Edge.Cuts") (width 0.1) (tstamp 00000000-0000-4000-8000-00000000000a))
+  (gr_line (start 20 10) (end 0 10) (layer "Edge.Cuts") (width 0.1) (tstamp 00000000-0000-4000-8000-00000000000b))
+  (gr_line (start 0 10) (end 0 0) (layer "Edge.Cuts") (width 0.1) (tstamp 00000000-0000-4000-8000-00000000000c))
+
+  (segment (start 5 4.2) (end 5 3) (width 0.25) (layer "F.Cu") (net 2) (tstamp 00000000-0000-4000-8000-00000000000d))
+  (via (at 5 3) (size 0.8) (drill 0.4) (layers "F.Cu" "B.Cu") (net 2) (tstamp 00000000-0000-4000-8000-00000000000e))
+
+)

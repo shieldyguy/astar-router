@@ -1,0 +1,27 @@
+{
+ "ids": [
+  "invalid_outline|PCB@0.000,0.000"
+ ],
+ "errors": {
+  "invalid_outline": 1
+ },
+ "warnings": {
+  "lib_footprint_issues": 14,
+  "silk_overlap": 1
+ },
+ "unconnected": 25,
+ "unconnected_by_net": {
+  "Net-(C2-Pad1)": 4,
+  "Net-(R2-Pad2)": 2,
+  "VCC": 3,
+  "GND": 4,
+  "Net-(R14-Pad1)": 3,
+  "Net-(Q1-Pad1)": 2,
+  "Net-(C2-Pad2)": 2,
+  "Net-(C3-Pad1)": 3,
+  "Net-(R12-Pad2)": 2
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

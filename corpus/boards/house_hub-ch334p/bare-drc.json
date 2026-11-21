@@ -1,0 +1,22 @@
+{
+ "ids": [
+  "invalid_outline|PCB@0.000,0.000"
+ ],
+ "errors": {
+  "invalid_outline": 1
+ },
+ "warnings": {
+  "lib_footprint_issues": 4
+ },
+ "unconnected": 8,
+ "unconnected_by_net": {
+  "Net-(U1-XO)": 1,
+  "Net-(U1-XI)": 1,
+  "VBUS": 1,
+  "Net-(U1-VDD33)": 1,
+  "GND": 4
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

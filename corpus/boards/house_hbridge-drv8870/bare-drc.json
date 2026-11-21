@@ -1,0 +1,23 @@
+{
+ "ids": [
+  "invalid_outline|PCB@0.000,0.000"
+ ],
+ "errors": {
+  "invalid_outline": 1
+ },
+ "warnings": {
+  "lib_footprint_issues": 5,
+  "silk_overlap": 3
+ },
+ "unconnected": 9,
+ "unconnected_by_net": {
+  "+24V": 2,
+  "GND": 4,
+  "/M1_OUT1": 1,
+  "/M1_ISEN": 1,
+  "/M1_OUT2": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

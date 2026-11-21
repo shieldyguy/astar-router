@@ -1,0 +1,8 @@
+{
+  "meta": {"filename": "buck-xl1509-5v.kicad_pro", "version": 3},
+  "sheets": [["1cfa027c-765a-4a37-b1bd-90d4fdd8fb1a", "Root"]],
+  "erc": {"rule_severities": {"power_pin_not_driven": "warning", "pin_not_driven": "warning"}},
+  "board": {"design_settings": {"rule_severities": {"courtyards_overlap": "ignore"}}},
+  "libraries": {"pinned_footprint_libs": [], "pinned_symbol_libs": []},
+  "text_variables": {}
+}

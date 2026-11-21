@@ -1,0 +1,29 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "lib_footprint_issues": 15
+ },
+ "unconnected": 39,
+ "unconnected_by_net": {
+  "USB_DP": 2,
+  "BOOT_EN": 1,
+  "+3V3": 4,
+  "GND": 14,
+  "+5V": 3,
+  "VBUS_F": 1,
+  "VBUS_C": 3,
+  "USB_DM_C": 2,
+  "USB_DP_C": 2,
+  "USB_DM": 1,
+  "CC1": 1,
+  "CC2": 1,
+  "LED": 1,
+  "SWCLK": 1,
+  "SWDIO": 1,
+  "LED_A": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

@@ -1,0 +1,33 @@
+{
+ "ids": [
+  "copper_edge_clearance|Pad 1 [Net-(R1-Pad2)] of SW1 on F.Cu@34.282,6.382; Rectangle on Edge.Cuts@0.000,0.000",
+  "copper_edge_clearance|Pad 3 [+5V] of SW1 on F.Cu@34.282,4.232; Rectangle on Edge.Cuts@0.000,0.000"
+ ],
+ "errors": {
+  "copper_edge_clearance": 2
+ },
+ "warnings": {
+  "lib_footprint_issues": 13
+ },
+ "unconnected": 34,
+ "unconnected_by_net": {
+  "GND": 12,
+  "VBUS_C": 3,
+  "Net-(J1-CC1)": 1,
+  "Net-(J1-Dp1)": 2,
+  "Net-(J1-Dn1)": 2,
+  "Net-(J1-CC2)": 1,
+  "Net-(D2-Pad1)": 1,
+  "Net-(D1-Pad2)": 1,
+  "USB_DP": 2,
+  "Net-(R1-Pad2)": 1,
+  "+5V": 4,
+  "USB_DM": 1,
+  "SWDIO": 1,
+  "SWCLK": 1,
+  "Net-(U1-PB12/T1C4_{slash}T2C2N_)": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

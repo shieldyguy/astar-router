@@ -1,0 +1,29 @@
+{
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "text_variables": {},
+  "meta": {
+    "filename": "hub-ch334p.kicad_pro",
+    "version": 3
+  },
+  "sheets": [
+    [
+      "cbd8db26-3534-4da2-a005-52bf3966f6f3",
+      "Root"
+    ]
+  ],
+  "erc": {
+    "rule_severities": {
+      "power_pin_not_driven": "warning"
+    }
+  },
+  "board": {
+    "design_settings": {
+      "rule_severities": {
+        "courtyards_overlap": "ignore"
+      }
+    }
+  }
+}

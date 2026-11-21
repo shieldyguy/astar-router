@@ -1,0 +1,39 @@
+# A release for every tag v*: the astar binary for Linux x86_64 and macOS arm64, which ./install.sh takes
+# where there is no cargo. Nothing runs on an ordinary push.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            asset: astar-linux-x86_64.tar.gz
+          - os: macos-14
+            asset: astar-macos-arm64.tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: build
+        run: cargo build --release
+      - name: test
+        run: cargo test --quiet
+      - name: self-check
+        run: target/release/astar route tests/scenes/tiny11.json plan.json
+      - name: package
+        run: tar -czf ${{ matrix.asset }} -C target/release astar
+      - name: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # the two jobs may both try to make the release: the second finds it there
+          gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes || true
+          gh release upload "$GITHUB_REF_NAME" ${{ matrix.asset }} --clobber

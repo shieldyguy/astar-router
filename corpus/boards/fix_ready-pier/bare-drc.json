@@ -1,0 +1,29 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "lib_footprint_issues": 14
+ },
+ "unconnected": 43,
+ "unconnected_by_net": {
+  "+5V": 6,
+  "/U2TX": 1,
+  "/U2RX": 1,
+  "/U1TX": 1,
+  "/U1RX": 1,
+  "/USB_DM": 1,
+  "/USB_DP": 2,
+  "/LED": 1,
+  "GND": 18,
+  "VBUS": 3,
+  "CC1": 1,
+  "USB_DP_C": 2,
+  "USB_DM_C": 2,
+  "CC2": 1,
+  "BOOT_EN": 1,
+  "LED_A": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

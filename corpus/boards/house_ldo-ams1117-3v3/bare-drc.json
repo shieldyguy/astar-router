@@ -1,0 +1,28 @@
+{
+ "ids": [
+  "invalid_outline|PCB@0.000,0.000",
+  "shorting_items|Pad 1 [+5V] of C7 on F.Cu@122.790,110.025; Pad 4 [+3V3] of U2 on F.Cu@122.677,108.185",
+  "shorting_items|Pad 2 [GND] of C8 on F.Cu@124.060,105.775; Pad 4 [+3V3] of U2 on F.Cu@122.677,108.185",
+  "solder_mask_bridge|Pad 1 [+5V] of C7 on F.Cu@122.790,110.025; Pad 4 [+3V3] of U2 on F.Cu@122.677,108.185",
+  "solder_mask_bridge|Pad 2 [GND] of C8 on F.Cu@124.060,105.775; Pad 4 [+3V3] of U2 on F.Cu@122.677,108.185"
+ ],
+ "errors": {
+  "shorting_items": 2,
+  "invalid_outline": 1,
+  "solder_mask_bridge": 2
+ },
+ "warnings": {
+  "lib_footprint_issues": 5,
+  "silk_overlap": 10,
+  "silk_over_copper": 12
+ },
+ "unconnected": 9,
+ "unconnected_by_net": {
+  "+3V3": 4,
+  "GND": 4,
+  "+5V": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

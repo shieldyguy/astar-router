@@ -1,0 +1,8 @@
+/target
+/runs
+*.pyc
+__pycache__/
+# goldens of boards the repo does not carry (tests/same.sh --record makes them where the boards are)
+/tests/golden/ccb.txt
+/tests/golden/tb150.txt
+/tests/golden/ub400.txt

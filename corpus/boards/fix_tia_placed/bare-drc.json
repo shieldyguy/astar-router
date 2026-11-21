@@ -1,0 +1,17 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "lib_footprint_issues": 4
+ },
+ "unconnected": 6,
+ "unconnected_by_net": {
+  "ISIG": 2,
+  "OUT": 2,
+  "VCC": 1,
+  "GND": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

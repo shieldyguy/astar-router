@@ -1,0 +1,30 @@
+{
+ "ids": [
+  "courtyards_overlap|Footprint Q1@40.400,34.200; Footprint R1@40.600,36.400",
+  "courtyards_overlap|Footprint R12@36.600,36.400; Footprint R13@36.600,34.600",
+  "invalid_outline|PCB@0.000,0.000"
+ ],
+ "errors": {
+  "courtyards_overlap": 2,
+  "invalid_outline": 1
+ },
+ "warnings": {
+  "lib_footprint_issues": 11,
+  "silk_overlap": 1
+ },
+ "unconnected": 20,
+ "unconnected_by_net": {
+  "VCC": 1,
+  "GND": 2,
+  "Net-(R14-Pad2)": 3,
+  "VREF": 3,
+  "Net-(Q1-Pad1)": 2,
+  "Net-(C2-Pad1)": 2,
+  "Net-(Q1-Pad4)": 2,
+  "Net-(C2-Pad2)": 3,
+  "Net-(R12-Pad2)": 2
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

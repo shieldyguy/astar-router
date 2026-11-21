@@ -1,0 +1,623 @@
+{
+ "layer": "F.Cu",
+ "pitch": 0.1,
+ "gaps": [
+  {
+   "a": "U1.A1",
+   "b": "U1.A2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A2",
+   "b": "U1.A3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A3",
+   "b": "U1.A4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A4",
+   "b": "U1.A5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A5",
+   "b": "U1.A6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A1",
+   "b": "U1.B1",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B1",
+   "b": "U1.B2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A2",
+   "b": "U1.B2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B2",
+   "b": "U1.B3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A3",
+   "b": "U1.B3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B3",
+   "b": "U1.B4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A4",
+   "b": "U1.B4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B4",
+   "b": "U1.B5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A5",
+   "b": "U1.B5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B5",
+   "b": "U1.B6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.A6",
+   "b": "U1.B6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B1",
+   "b": "U1.C1",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C1",
+   "b": "U1.C2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B2",
+   "b": "U1.C2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C2",
+   "b": "U1.C3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B3",
+   "b": "U1.C3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C3",
+   "b": "U1.C4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B4",
+   "b": "U1.C4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C4",
+   "b": "U1.C5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B5",
+   "b": "U1.C5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C5",
+   "b": "U1.C6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.B6",
+   "b": "U1.C6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C1",
+   "b": "U1.D1",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D1",
+   "b": "U1.D2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C2",
+   "b": "U1.D2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D2",
+   "b": "U1.D3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C3",
+   "b": "U1.D3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D3",
+   "b": "U1.D4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C4",
+   "b": "U1.D4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D4",
+   "b": "U1.D5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C5",
+   "b": "U1.D5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D5",
+   "b": "U1.D6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.C6",
+   "b": "U1.D6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D1",
+   "b": "U1.E1",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E1",
+   "b": "U1.E2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D2",
+   "b": "U1.E2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E2",
+   "b": "U1.E3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D3",
+   "b": "U1.E3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E3",
+   "b": "U1.E4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D4",
+   "b": "U1.E4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E4",
+   "b": "U1.E5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D5",
+   "b": "U1.E5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E5",
+   "b": "U1.E6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.D6",
+   "b": "U1.E6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E1",
+   "b": "U1.F1",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.F1",
+   "b": "U1.F2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E2",
+   "b": "U1.F2",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.F2",
+   "b": "U1.F3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E3",
+   "b": "U1.F3",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.F3",
+   "b": "U1.F4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E4",
+   "b": "U1.F4",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.F4",
+   "b": "U1.F5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E5",
+   "b": "U1.F5",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.F5",
+   "b": "U1.F6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "U1.E6",
+   "b": "U1.F6",
+   "width": 0.4,
+   "tracks": 1,
+   "lanes": 1
+  }
+ ],
+ "pockets": [
+  {
+   "at": [
+    8.4,
+    12.4
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    9.2,
+    12.4
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.0,
+    12.4
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.8,
+    12.4
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    11.6,
+    12.4
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    8.4,
+    13.2
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    9.2,
+    13.2
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.0,
+    13.2
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.8,
+    13.2
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    11.6,
+    13.2
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    8.4,
+    14.0
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    9.2,
+    14.0
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.0,
+    14.0
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.8,
+    14.0
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    11.6,
+    14.0
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    8.4,
+    14.8
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    9.2,
+    14.8
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.0,
+    14.8
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.8,
+    14.8
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    11.6,
+    14.8
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    8.4,
+    15.6
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    9.2,
+    15.6
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.0,
+    15.6
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    10.8,
+    15.6
+   ],
+   "vias": 1
+  },
+  {
+   "at": [
+    11.6,
+    15.6
+   ],
+   "vias": 1
+  }
+ ],
+ "part": "U1",
+ "no_gap": [
+  [
+   "U1.A1",
+   "U1.B2"
+  ],
+  [
+   "U1.A2",
+   "U1.B1"
+  ],
+  [
+   "U1.C3",
+   "U1.D4"
+  ]
+ ],
+ "gap_count": 60,
+ "demand": 36,
+ "assigned": 36,
+ "assigned_at_least": 35,
+ "short": 0
+}

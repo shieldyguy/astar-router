@@ -1,0 +1,5 @@
+{
+ "version": 3,
+ "units": "mm",
+ "shapes": [{"kind": "hub", "id": "hub1", "points": [[20, 12]]}]
+}

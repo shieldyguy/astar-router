@@ -1,0 +1,49 @@
+{
+ "layer": "F.Cu",
+ "pitch": 0.1,
+ "part": "J1",
+ "side": "S",
+ "demand": 5,
+ "assigned": 4,
+ "short": 1,
+ "short_pads": [
+  "J1.3"
+ ],
+ "gaps": [
+  {
+   "a": "J1.1",
+   "b": "keepout",
+   "width": 0.5,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "J1.2",
+   "b": "keepout",
+   "width": 0.5,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "J1.3",
+   "b": "keepout",
+   "width": 0.5,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "J1.4",
+   "b": "keepout",
+   "width": 0.5,
+   "tracks": 1,
+   "lanes": 1
+  },
+  {
+   "a": "J1.5",
+   "b": "keepout",
+   "width": 0.5,
+   "tracks": 1,
+   "lanes": 1
+  }
+ ]
+}

@@ -1,0 +1,32 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "silk_edge_clearance": 6,
+  "lib_footprint_issues": 16,
+  "text_thickness": 4
+ },
+ "unconnected": 22,
+ "unconnected_by_net": {
+  "Net-(D1-Pad1)": 1,
+  "GND": 1,
+  "+5V": 8,
+  "UP_TX": 1,
+  "UP_RX": 1,
+  "POT2": 1,
+  "POT4": 1,
+  "POT1": 1,
+  "POT3": 1,
+  "DOWN_TX": 1,
+  "DOWN_RX": 1,
+  "SWCLK": 1,
+  "SWDIO": 1,
+  "BOOT_DN": 1,
+  "LED": 1
+ },
+ "islands_only": [
+  "GND"
+ ],
+ "art_pads": [],
+ "art_hits": {}
+}

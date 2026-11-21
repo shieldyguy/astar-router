@@ -1,0 +1,32 @@
+{
+ "ids": [
+  "clearance|Pad 1 [Net-(Q1-G)] of R1 on F.Cu@91.675,110.607; Pad 3 [VIN] of Q1 on F.Cu@92.400,111.360",
+  "clearance|Pad 2 [GND] of R1 on F.Cu@91.675,112.113; Pad 3 [VIN] of Q1 on F.Cu@92.400,111.360",
+  "invalid_outline|PCB@0.000,0.000",
+  "shorting_items|Pad 1 [Net-(Q1-G)] of R1 on F.Cu@91.675,110.607; Pad 2 [VIN] of Q1 on F.Cu@92.400,110.090",
+  "shorting_items|Pad 2 [GND] of R1 on F.Cu@91.675,112.113; Pad 4 [Net-(Q1-G)] of Q1 on F.Cu@92.400,112.630",
+  "solder_mask_bridge|Pad 1 [Net-(Q1-G)] of R1 on F.Cu@91.675,110.607; Pad 2 [VIN] of Q1 on F.Cu@92.400,110.090",
+  "solder_mask_bridge|Pad 2 [GND] of R1 on F.Cu@91.675,112.113; Pad 4 [Net-(Q1-G)] of Q1 on F.Cu@92.400,112.630"
+ ],
+ "errors": {
+  "shorting_items": 2,
+  "clearance": 2,
+  "invalid_outline": 1,
+  "solder_mask_bridge": 2
+ },
+ "warnings": {
+  "lib_footprint_issues": 9,
+  "silk_overlap": 7,
+  "silk_over_copper": 10
+ },
+ "unconnected": 20,
+ "unconnected_by_net": {
+  "VIN": 8,
+  "Net-(Q1-G)": 2,
+  "GND": 6,
+  "Net-(J1-Pad1)": 4
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

@@ -1,0 +1,14 @@
+# the corpus smoke of `./gate.sh --smoke`: every board that passed the baseline (corpus/baseline.jsonl),
+# less the bench five, which the gate judges just before. One name a line.
+house_buck-ap63203-3v3
+house_svf-bjt-3v3
+fix_ldo_against
+fix_ldo_drops
+fix_tia_placed
+fix_usb_beside
+fix_putlines-host
+fix_putlines-ldo
+fix_score-ldo-tuck
+qa_field_test
+qa_keys-mini-peel
+qa_keys-mini

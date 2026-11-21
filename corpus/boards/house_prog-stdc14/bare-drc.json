@@ -1,0 +1,25 @@
+{
+ "ids": [
+  "invalid_outline|PCB@0.000,0.000",
+  "shorting_items|Pad 1 [NRST] of C6 on F.Cu@33.890,64.940; Pad 11 [GND] of H1 on F.Cu@33.890,63.630",
+  "solder_mask_bridge|Pad 1 [NRST] of C6 on F.Cu@33.890,64.940; Pad 11 [GND] of H1 on F.Cu@33.890,63.630"
+ ],
+ "errors": {
+  "shorting_items": 1,
+  "invalid_outline": 1,
+  "solder_mask_bridge": 1
+ },
+ "warnings": {
+  "lib_footprint_issues": 4,
+  "silk_over_copper": 2
+ },
+ "unconnected": 8,
+ "unconnected_by_net": {
+  "NRST": 3,
+  "GND": 4,
+  "+3V3": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

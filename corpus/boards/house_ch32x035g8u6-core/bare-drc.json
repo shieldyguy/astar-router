@@ -1,0 +1,24 @@
+{
+ "ids": [
+  "clearance|Pad 3 [unconnected-(U1-PC0/TX2_{slash}T2C4_{slash}T1C1_{slash}T2BK_{slash}A10-Pad3)] of U1 on F.Cu@46.283,32.445; Pad 4 [unconnected-(U1-PC3/T1C4_{slash}T2C3N_{slash}T2C1N_{slash}C1N0/A13-Pad4)] of U1 on F.Cu@46.681,32.445",
+  "invalid_outline|PCB@0.000,0.000"
+ ],
+ "errors": {
+  "clearance": 1,
+  "invalid_outline": 1
+ },
+ "warnings": {
+  "lib_footprint_issues": 5,
+  "text_thickness": 2
+ },
+ "unconnected": 7,
+ "unconnected_by_net": {
+  "Net-(R3-Pad2)": 1,
+  "+5V": 3,
+  "GND": 2,
+  "USB_DP": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

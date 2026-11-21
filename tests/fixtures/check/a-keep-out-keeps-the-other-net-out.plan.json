@@ -1,0 +1,45 @@
+{
+ "version": 1,
+ "nets": [
+  {
+   "name": "A",
+   "tracks": [
+    {
+     "layer": "F.Cu",
+     "width": 0.2,
+     "path": [
+      {
+       "line": [
+        2,
+        3,
+        18,
+        3
+       ]
+      }
+     ]
+    }
+   ],
+   "vias": []
+  },
+  {
+   "name": "B",
+   "tracks": [
+    {
+     "layer": "F.Cu",
+     "width": 0.2,
+     "path": [
+      {
+       "line": [
+        2,
+        7,
+        18,
+        7
+       ]
+      }
+     ]
+    }
+   ],
+   "vias": []
+  }
+ ]
+}

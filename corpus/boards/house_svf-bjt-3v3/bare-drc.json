@@ -1,0 +1,40 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "silk_edge_clearance": 2,
+  "lib_footprint_issues": 38,
+  "silk_overlap": 45,
+  "silk_over_copper": 26
+ },
+ "unconnected": 71,
+ "unconnected_by_net": {
+  "+3V3": 6,
+  "Net-(Q3-Pad1)": 4,
+  "SUM": 5,
+  "Net-(C11-Pad1)": 1,
+  "Net-(Q2-Pad3)": 2,
+  "VREF": 9,
+  "Net-(C8-Pad2)": 3,
+  "Net-(C4-Pad1)": 7,
+  "Net-(D1-Pad1)": 3,
+  "Net-(Q1-Pad1)": 3,
+  "GND": 5,
+  "Net-(C11-Pad2)": 1,
+  "Net-(R18-Pad1)": 1,
+  "unconnected-(RV3-Pad4)": 1,
+  "Net-(C1-Pad2)": 3,
+  "Net-(C5-Pad2)": 2,
+  "Net-(Q1-Pad3)": 2,
+  "Net-(R9-Pad1)": 1,
+  "unconnected-(RV1-Pad4)": 1,
+  "LP": 4,
+  "Net-(Q3-Pad3)": 2,
+  "Net-(R13-Pad1)": 2,
+  "Net-(C4-Pad2)": 2,
+  "unconnected-(RV2-Pad4)": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

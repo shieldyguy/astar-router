@@ -1,0 +1,16 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "lib_footprint_issues": 3
+ },
+ "unconnected": 4,
+ "unconnected_by_net": {
+  "OUT": 1,
+  "GND": 2,
+  "IN": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

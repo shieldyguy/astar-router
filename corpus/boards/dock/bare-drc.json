@@ -1,0 +1,41 @@
+{
+ "ids": [],
+ "errors": {},
+ "warnings": {
+  "lib_footprint_issues": 31
+ },
+ "unconnected": 72,
+ "unconnected_by_net": {
+  "GND": 24,
+  "VBUS_C": 3,
+  "Net-(J2-CC1)": 1,
+  "MCU_USB_DP_C": 2,
+  "MCU_USB_DM_C": 2,
+  "Net-(J2-CC2)": 1,
+  "SUS": 4,
+  "+5V": 10,
+  "MCU_USB_DP": 2,
+  "MCU_USB_DM": 1,
+  "MCU_SWDIO": 1,
+  "MCU_SWCLK": 1,
+  "Net-(J4-Pad4)": 2,
+  "Net-(D2-Pad2)": 1,
+  "Net-(U1-PB12/T1C4_{slash}T2C2N_)": 1,
+  "Net-(D1-Pad1)": 1,
+  "HP_EN": 2,
+  "U1TX": 1,
+  "U1RX": 1,
+  "Net-(U4-CPP)": 1,
+  "Net-(U4-CPN)": 1,
+  "Net-(U4-HPVDD)": 1,
+  "AUX_L": 1,
+  "AUX_R": 1,
+  "Net-(R1-Pad2)": 1,
+  "HP_OUT_R": 2,
+  "HP_OUT_L": 2,
+  "Net-(U4-HPVSS)": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

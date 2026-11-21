@@ -1,0 +1,156 @@
+{
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "text_variables": {},
+  "meta": {
+    "filename": "buoy-corner-ch32x035-5v.kicad_pro",
+    "version": 3
+  },
+  "sheets": [
+    [
+      "d2e69361-b776-413e-857a-ddccd835dde0",
+      "Root"
+    ]
+  ],
+  "erc": {
+    "rule_severities": {
+      "power_pin_not_driven": "warning"
+    }
+  },
+  "board": {
+    "design_settings": {
+      "rule_severities": {
+        "courtyards_overlap": "ignore",
+        "silk_overlap": "ignore",
+        "silk_over_copper": "ignore",
+        "silk_edge_clearance": "ignore",
+        "text_height": "ignore",
+        "text_thickness": "ignore",
+        "mirrored_text_on_front_layer": "ignore",
+        "nonmirrored_text_on_back_layer": "ignore"
+      },
+      "rules": {
+        "min_clearance": 0.127,
+        "min_track_width": 0.127,
+        "min_connection": 0.127,
+        "min_via_diameter": 0.6,
+        "min_via_annular_width": 0.1,
+        "min_through_hole_diameter": 0.3,
+        "min_hole_clearance": 0.127,
+        "min_hole_to_hole": 0.25,
+        "min_copper_edge_clearance": 0.3,
+        "min_resolved_spokes": 1,
+        "min_silk_clearance": 0.0,
+        "solder_mask_to_copper_clearance": 0.0,
+        "min_via_drill": 0.3
+      },
+      "defaults": {
+        "solder_mask_min_width": 0.1
+      }
+    }
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "name": "Default",
+        "bus_width": 12,
+        "wire_width": 6,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
+        "clearance": 0.127,
+        "track_width": 0.127,
+        "via_diameter": 0.8128,
+        "via_drill": 0.4064,
+        "diff_pair_gap": 0.1778,
+        "diff_pair_width": 0.2,
+        "diff_pair_via_gap": 0.1778
+      },
+      {
+        "bus_width": 12,
+        "wire_width": 6,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 1,
+        "clearance": 0.127,
+        "track_width": 0.508,
+        "via_diameter": 0.8128,
+        "via_drill": 0.4064,
+        "diff_pair_gap": 0.1778,
+        "diff_pair_width": 0.2,
+        "diff_pair_via_gap": 0.1778,
+        "name": "PWR"
+      }
+    ],
+    "meta": {
+      "version": 4
+    },
+    "netclass_patterns": [
+      {
+        "netclass": "PWR",
+        "pattern": "+5V"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "VBUS_C"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "VBUS_F"
+      }
+    ]
+  },
+  "kicad_routing_tools": {
+    "repo_rules": {
+      "min_via_drill": 0.3
+    },
+    "fab_floor_origin": {
+      "min_track_width": 0.127,
+      "min_via_diameter": 0.6,
+      "min_via_annular_width": 0.1,
+      "min_through_hole_diameter": 0.3,
+      "min_hole_clearance": 0.127
+    },
+    "records_rev": 5,
+    "same_net_pad_clearance": 0.127,
+    "route_laps": [
+      {
+        "lost": [],
+        "gained": [
+          "GND"
+        ],
+        "verdict": "accept",
+        "attackers": {}
+      },
+      {
+        "lost": [],
+        "gained": [
+          "BOOT_EN",
+          "DOWN_RX",
+          "LED",
+          "SWCLK",
+          "SWDIO",
+          "UP_RX",
+          "UP_TX",
+          "VBUS_C"
+        ],
+        "verdict": "accept",
+        "attackers": {}
+      }
+    ],
+    "power_widths": {
+      "+5V": 0.508,
+      "DOWN_RX": 0.127,
+      "LED_A": 0.127,
+      "VBUS_C": 0.508
+    }
+  }
+}

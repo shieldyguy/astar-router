@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "filename": "svf-bjt-3v3.kicad_pro",
+    "version": 3
+  },
+  "sheets": [
+    [
+      "443662f2-5d4e-4f1d-916f-f2a832f725de",
+      "Root"
+    ]
+  ],
+  "erc": {
+    "rule_severities": {
+      "power_pin_not_driven": "warning",
+      "pin_not_driven": "warning"
+    }
+  },
+  "board": {
+    "design_settings": {
+      "rule_severities": {
+        "courtyards_overlap": "ignore"
+      }
+    }
+  },
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "text_variables": {}
+}

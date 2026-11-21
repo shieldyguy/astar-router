@@ -1,0 +1,8 @@
+{
+  "meta": {"filename": "ldo-ams1117-3v3.kicad_pro", "version": 3},
+  "sheets": [["a9b4b15f-c43e-4a1f-b2b8-80f3ebd7978c", "Root"]],
+  "erc": {"rule_severities": {"power_pin_not_driven": "warning", "pin_not_driven": "warning"}},
+  "board": {"design_settings": {"rule_severities": {"courtyards_overlap": "ignore"}}},
+  "libraries": {"pinned_footprint_libs": [], "pinned_symbol_libs": []},
+  "text_variables": {}
+}

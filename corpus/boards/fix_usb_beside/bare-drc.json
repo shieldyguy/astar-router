@@ -1,0 +1,32 @@
+{
+ "ids": [
+  "clearance|Pad 1 [+5V] of D1 on F.Cu@35.047,50.400; Pad 2 [VBUS_F] of F1 on F.Cu@33.748,50.400",
+  "courtyards_overlap|Footprint D1@36.748,50.400; Footprint F1@32.303,50.400",
+  "hole_clearance|NPTH pad of J1@22.745,54.493; Pad A1B12 [GND] of J1 on F.Cu@22.435,53.422",
+  "hole_clearance|NPTH pad of J1@22.745,54.493; Pad A4B9 [VBUS_C] of J1 on F.Cu@23.235,53.422",
+  "hole_clearance|NPTH pad of J1@28.525,54.493; Pad B1A12 [GND] of J1 on F.Cu@28.835,53.422",
+  "hole_clearance|NPTH pad of J1@28.525,54.493; Pad B4A9 [VBUS_C] of J1 on F.Cu@28.035,53.422"
+ ],
+ "errors": {
+  "clearance": 1,
+  "hole_clearance": 4,
+  "courtyards_overlap": 1
+ },
+ "warnings": {
+  "lib_footprint_issues": 6,
+  "silk_over_copper": 5
+ },
+ "unconnected": 18,
+ "unconnected_by_net": {
+  "VBUS_F": 1,
+  "VBUS_C": 3,
+  "USB_DM_C": 2,
+  "GND": 8,
+  "USB_DP_C": 2,
+  "CC1": 1,
+  "CC2": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

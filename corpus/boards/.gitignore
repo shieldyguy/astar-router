@@ -1,0 +1,14 @@
+# too large to commit: made again by `corpus/prepare.py NAME ...` (written by prepare.py)
+/krt_glasgow_revC/
+/demo_jetson-agx-thor-baseboard/
+/demo_multichannel_mixer/
+/demo_tinytapeout-demo/
+/demo_video/
+/demo_vme-wren/
+# not in this repo: the bench's three larger boards, KiCad's demos and KRT's fixtures. `corpus/prepare.py NAME`
+# makes them here from a router-bench, kicad or KRT checkout; they stay local.
+/ccb/
+/tb150/
+/ub400/
+/demo_*/
+/krt_*/

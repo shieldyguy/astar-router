@@ -1,0 +1,33 @@
+{
+ "ids": [
+  "invalid_outline|PCB@0.000,0.000"
+ ],
+ "errors": {
+  "invalid_outline": 1
+ },
+ "warnings": {
+  "lib_footprint_issues": 13,
+  "silk_over_copper": 3
+ },
+ "unconnected": 35,
+ "unconnected_by_net": {
+  "Net-(U1-5VOUT)": 1,
+  "GND": 16,
+  "+3V3": 2,
+  "+24V": 5,
+  "ENN": 1,
+  "B2": 1,
+  "Net-(U1-CPO)": 1,
+  "Net-(U1-CPI)": 1,
+  "Net-(U1-VCP)": 1,
+  "UART_PDN": 1,
+  "A2": 1,
+  "Net-(U1-BRA)": 1,
+  "A1": 1,
+  "B1": 1,
+  "Net-(U1-BRB)": 1
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}

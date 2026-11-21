@@ -1,0 +1,25 @@
+{
+ "version": 1,
+ "nets": [
+  {
+   "name": "SIG",
+   "tracks": [
+    {
+     "layer": "F.Cu",
+     "width": 0.2,
+     "path": [
+      {
+       "line": [
+        10,
+        0.9,
+        10,
+        9.1
+       ]
+      }
+     ]
+    }
+   ],
+   "vias": []
+  }
+ ]
+}

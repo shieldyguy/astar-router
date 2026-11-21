@@ -1,0 +1,68 @@
+{
+ "version": 2,
+ "units": "mm",
+ "source": {"board": "every_field", "note": "a scene 2 with every key the format has; made by hand for the tests"},
+ "stack": {"copper": ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"], "planes": [{"net": "GND", "layer": "In1.Cu"}], "layers": [{"name": "F.Mask", "type": "mask", "thickness": 0.01, "epsilon_r": 3.3}, {"name": "F.Cu", "type": "copper", "thickness": 0.035}, {"name": "prepreg 1", "type": "prepreg", "thickness": 0.2, "epsilon_r": 4.4, "loss_tangent": 0.02, "material": "FR4"}, {"name": "In1.Cu", "type": "copper", "thickness": 0.0175}, {"name": "core", "type": "core", "thickness": 1.0, "epsilon_r": 4.6, "loss_tangent": 0.02, "material": "FR4"}, {"name": "In2.Cu", "type": "copper", "thickness": 0.0175}, {"name": "prepreg 2", "type": "prepreg", "thickness": 0.2, "epsilon_r": 4.4, "loss_tangent": 0.02, "material": "FR4"}, {"name": "B.Cu", "type": "copper", "thickness": 0.035}, {"name": "B.Mask", "type": "mask", "thickness": 0.01, "epsilon_r": 3.3}]},
+ "outline": [
+  {"line": [0, 0, 19, 0]},
+  {"arc": [19, 0, 19.7071, 0.2929, 20, 1]},
+  {"line": [20, 1, 20, 12]},
+  {"line": [20, 12, 0, 12]},
+  {"line": [0, 12, 0, 0]}],
+ "rules": {"track": 0.2, "clearance": 0.15, "via": 0.6, "drill": 0.3, "edge": 0.3, "hole_clearance": 0.25, "hole_to_hole": 0.25, "floors": {"track": 0.09, "clearance": 0.09, "via": 0.45, "drill": 0.2, "annular": 0.1, "hole_to_hole": 0.2, "edge": 0.2}, "layers": [{"layer": "In2.Cu", "track": 0.15, "clearance": 0.18}]},
+ "classes": [
+  {"name": "Default", "track": 0.2, "clearance": 0.15, "via": 0.6, "drill": 0.3},
+  {"name": "Power", "track": 0.4, "clearance": 0.2, "via": 0.8, "drill": 0.4, "layers": [{"layer": "In2.Cu", "clearance": 0.25}]},
+  {"name": "Pair90", "track": 0.2, "pair_width": 0.2, "pair_gap": 0.15, "impedance": {"ohms": 90, "differential": true, "tolerance": 10}}],
+ "class_pairs": [
+  {"a": "Power", "b": "Default", "clearance": 0.2}],
+ "nets": [
+  {"name": "GND", "role": "ground"},
+  {"name": "VCC", "role": "rail", "class": "Power", "width": 0.4},
+  {"name": "SIG", "role": "signal"},
+  {"name": "AUX", "clearance": 0.2, "via": 0.6, "drill": 0.3, "impedance": {"ohms": 50, "coplanar_gap": 0.2}},
+  {"name": "SIG_P", "class": "Pair90"},
+  {"name": "SIG_N", "class": "Pair90"}],
+ "pads": [
+  {"ref": "U1", "num": "1", "net": "VCC", "at": [3.8, 5.25], "fp": [6, 6], "size": [1.0, 0.3], "tht": false, "shape": {"poly": [[3.3, 5.1], [4.3, 5.1], [4.3, 5.4], [3.3, 5.4]], "r": 0}},
+  {"ref": "U1", "num": "2", "net": "SIG", "at": [3.8, 5.75], "fp": [6, 6], "size": [1.0, 0.3], "tht": false, "shape": {"poly": [[3.3, 5.6], [4.3, 5.6], [4.3, 5.9], [3.3, 5.9]], "r": 0}},
+  {"ref": "U1", "num": "3", "net": "SIG_P", "at": [3.8, 6.25], "fp": [6, 6], "size": [1.0, 0.3], "tht": false, "shape": {"poly": [[3.3, 6.1], [4.3, 6.1], [4.3, 6.4], [3.3, 6.4]], "r": 0}},
+  {"ref": "U1", "num": "4", "net": "SIG_N", "at": [3.8, 6.75], "fp": [6, 6], "size": [1.0, 0.3], "tht": false, "shape": {"poly": [[3.3, 6.6], [4.3, 6.6], [4.3, 6.9], [3.3, 6.9]], "r": 0}},
+  {"ref": "U1", "num": "8", "net": "GND", "at": [8.2, 5.25], "fp": [6, 6], "size": [1.0, 0.3], "tht": false, "shape": {"poly": [[7.7, 5.1], [8.7, 5.1], [8.7, 5.4], [7.7, 5.4]], "r": 0}},
+  {"ref": "U1", "num": "7", "net": "VCC", "at": [8.2, 5.75], "fp": [6, 6], "size": [1.0, 0.3], "tht": false, "shape": {"poly": [[7.7, 5.6], [8.7, 5.6], [8.7, 5.9], [7.7, 5.9]], "r": 0}},
+  {"ref": "U1", "num": "6", "net": "AUX", "at": [8.2, 6.25], "fp": [6, 6], "size": [1.0, 0.3], "tht": false, "shape": {"poly": [[7.7, 6.1], [8.7, 6.1], [8.7, 6.4], [7.7, 6.4]], "r": 0}},
+  {"ref": "U1", "num": "5", "net": "VCC", "at": [8.2, 6.75], "fp": [6, 6], "size": [1.0, 0.3], "tht": false, "shape": {"poly": [[7.7, 6.6], [8.7, 6.6], [8.7, 6.9], [7.7, 6.9]], "r": 0}},
+  {"ref": "R1", "num": "1", "net": "SIG", "at": [11.25, 3], "fp": [12, 3], "size": [0.8, 0.9], "tht": false, "shape": {"poly": [[10.85, 2.55], [11.65, 2.55], [11.65, 3.45], [10.85, 3.45]], "r": 0}},
+  {"ref": "R1", "num": "2", "net": "VCC", "at": [12.75, 3], "fp": [12, 3], "size": [0.8, 0.9], "tht": false, "shape": {"poly": [[12.35, 2.55], [13.15, 2.55], [13.15, 3.45], [12.35, 3.45]], "r": 0}},
+  {"ref": "R2", "num": "1", "net": "AUX", "at": [11.25, 9], "fp": [12, 9], "size": [0.8, 0.9], "tht": false, "shape": {"poly": [[10.85, 8.55], [11.65, 8.55], [11.65, 9.45], [10.85, 9.45]], "r": 0}},
+  {"ref": "R2", "num": "2", "net": "GND", "at": [12.75, 9], "fp": [12, 9], "size": [0.8, 0.9], "tht": false, "shape": {"poly": [[12.35, 8.55], [13.15, 8.55], [13.15, 9.45], [12.35, 9.45]], "r": 0}},
+  {"ref": "C1", "num": "1", "net": "VCC", "at": [5.25, 2.5], "fp": [6, 2.5], "size": [0.8, 0.9], "tht": false, "shape": {"poly": [[4.85, 2.05], [5.65, 2.05], [5.65, 2.95], [4.85, 2.95]], "r": 0}},
+  {"ref": "C1", "num": "2", "net": "GND", "at": [6.75, 2.5], "fp": [6, 2.5], "size": [0.8, 0.9], "tht": false, "shape": {"poly": [[6.35, 2.05], [7.15, 2.05], [7.15, 2.95], [6.35, 2.95]], "r": 0}},
+  {"ref": "C2", "num": "1", "net": "VCC", "at": [5.25, 9.5], "fp": [6, 9.5], "size": [0.8, 0.9], "tht": false, "shape": {"poly": [[4.85, 9.05], [5.65, 9.05], [5.65, 9.95], [4.85, 9.95]], "r": 0}},
+  {"ref": "C2", "num": "2", "net": "GND", "at": [6.75, 9.5], "fp": [6, 9.5], "size": [0.8, 0.9], "tht": false, "shape": {"poly": [[6.35, 9.05], [7.15, 9.05], [7.15, 9.95], [6.35, 9.95]], "r": 0}, "clearance": 0.2},
+  {"ref": "J1", "num": "1", "net": "SIG_P", "at": [16.5, 3], "fp": [16.5, 6], "size": [1.7, 1.7], "tht": true, "drill": 1.0, "shape": {"circle": [16.5, 3, 0.85]}},
+  {"ref": "J1", "num": "2", "net": "SIG_N", "at": [16.5, 5], "fp": [16.5, 6], "size": [1.7, 1.7], "tht": true, "drill": 1.0, "shape": {"circle": [16.5, 5, 0.85]}},
+  {"ref": "J1", "num": "3", "net": "VCC", "at": [16.5, 7], "fp": [16.5, 6], "size": [1.7, 1.7], "tht": true, "drill": 1.0, "shape": {"circle": [16.5, 7, 0.85]}},
+  {"ref": "J1", "num": "4", "net": "GND", "at": [16.5, 9], "fp": [16.5, 6], "size": [1.7, 1.7], "tht": true, "drill": 1.0, "shape": {"circle": [16.5, 9, 0.85]}},
+  {"ref": "TP1", "num": "1", "net": "AUX", "at": [10, 6], "fp": [10, 6], "size": [1.0, 1.0], "tht": false, "side": "B", "shape": {"oval": [9.8, 6, 10.2, 6, 0.4]}}],
+ "holes": [[1.5, 1.5, 1.0]],
+ "keepouts": [
+  {"name": "no vias beside J1", "layers": ["F.Cu"], "poly": [[13.6, 5.2], [15, 5.2], [15, 6.8], [13.6, 6.8]], "forbid": ["vias"]}],
+ "copper": {"tracks": [{"net": "AUX", "layer": "B.Cu", "width": 0.2, "locked": true, "path": [{"line": [9, 11, 11, 11]}, {"arc": [11, 11, 11.2828, 10.8828, 11.4, 10.6]}]}], "vias": [{"net": "GND", "at": [2, 10], "size": 0.6, "drill": 0.3}, {"net": "AUX", "at": [9, 11], "size": 0.45, "drill": 0.2, "layers": ["In2.Cu", "B.Cu"], "locked": true}], "zones": [{"net": "GND", "layer": "In1.Cu", "outline": [[0, 0], [20, 0], [20, 12], [0, 12]], "holes": [], "priority": 1, "clearance": 0.2, "min_width": 0.2, "pads": "thermal_tht", "locked": false, "fill": [{"outline": [[0.3, 0.3], [19.7, 0.3], [19.7, 11.7], [0.3, 11.7]], "holes": [[[0.75, 0.75], [2.25, 0.75], [2.25, 2.25], [0.75, 2.25]]]}]}]},
+ "parts": [
+  {"ref": "U1", "courtyard": [[3.0, 4.7], [9.0, 4.7], [9.0, 7.3], [3.0, 7.3]]},
+  {"ref": "R1", "courtyard": [[10.55, 2.25], [13.45, 2.25], [13.45, 3.75], [10.55, 3.75]]},
+  {"ref": "R2", "courtyard": [[10.55, 8.25], [13.45, 8.25], [13.45, 9.75], [10.55, 9.75]]},
+  {"ref": "C1", "courtyard": [[4.55, 1.75], [7.45, 1.75], [7.45, 3.25], [4.55, 3.25]]},
+  {"ref": "C2", "courtyard": [[4.55, 8.75], [7.45, 8.75], [7.45, 10.25], [4.55, 10.25]]},
+  {"ref": "J1", "courtyard": [[15.3, 1.8], [17.7, 1.8], [17.7, 10.2], [15.3, 10.2]], "fixed": true},
+  {"ref": "TP1", "courtyard": [[9.2, 5.4], [10.8, 5.4], [10.8, 6.6], [9.2, 6.6]], "side": "B"}],
+ "pairs": [
+  {"name": "SIG", "p": "SIG_P", "n": "SIG_N", "width": 0.2, "gap": 0.15, "impedance": {"ohms": 90, "differential": true}, "max_skew": 0.5, "max_uncoupled": 2.0}],
+ "match": [
+  {"name": "the pair's two halves", "nets": ["SIG_P", "SIG_N"], "tolerance": 0.5, "by": "length"},
+  {"name": "to a length", "nets": ["SIG", "AUX"], "tolerance": 1.0, "target": 25.0, "by": "time"}],
+ "groups": [
+  {"name": "U1 and its capacitors", "parts": ["U1", "C1", "C2"]}],
+ "scope": {"nets": ["GND", "VCC", "SIG", "AUX", "SIG_P", "SIG_N"], "parts": ["U1", "R1", "R2", "C1", "C2", "J1", "TP1"]}
+}

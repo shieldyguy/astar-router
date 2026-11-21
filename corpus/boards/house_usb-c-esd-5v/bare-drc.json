@@ -1,0 +1,35 @@
+{
+ "ids": [
+  "clearance|Pad A1B12 [GND] of J1 on F.Cu@17.200,6.875; Pad A4B9 [VBUS] of J1 on F.Cu@16.400,6.875",
+  "clearance|Pad A4B9 [VBUS] of J1 on F.Cu@16.400,6.875; Pad B8 [unconnected-(J1-SBU2-PadB8)] of J1 on F.Cu@15.750,6.875",
+  "clearance|Pad A5 [Net-(J1-CC1)] of J1 on F.Cu@15.250,6.875; Pad B7 [Net-(J1-Dn1)] of J1 on F.Cu@14.750,6.875",
+  "clearance|Pad A5 [Net-(J1-CC1)] of J1 on F.Cu@15.250,6.875; Pad B8 [unconnected-(J1-SBU2-PadB8)] of J1 on F.Cu@15.750,6.875",
+  "clearance|Pad A6 [Net-(J1-Dp1)] of J1 on F.Cu@14.250,6.875; Pad A7 [Net-(J1-Dn1)] of J1 on F.Cu@13.750,6.875",
+  "clearance|Pad A6 [Net-(J1-Dp1)] of J1 on F.Cu@14.250,6.875; Pad B7 [Net-(J1-Dn1)] of J1 on F.Cu@14.750,6.875",
+  "clearance|Pad A7 [Net-(J1-Dn1)] of J1 on F.Cu@13.750,6.875; Pad B6 [Net-(J1-Dp1)] of J1 on F.Cu@13.250,6.875",
+  "clearance|Pad A8 [unconnected-(J1-SBU1-PadA8)] of J1 on F.Cu@12.750,6.875; Pad B5 [Net-(J1-CC2)] of J1 on F.Cu@12.250,6.875",
+  "clearance|Pad A8 [unconnected-(J1-SBU1-PadA8)] of J1 on F.Cu@12.750,6.875; Pad B6 [Net-(J1-Dp1)] of J1 on F.Cu@13.250,6.875",
+  "clearance|Pad B1A12 [GND] of J1 on F.Cu@10.800,6.875; Pad B4A9 [VBUS] of J1 on F.Cu@11.600,6.875",
+  "clearance|Pad B4A9 [VBUS] of J1 on F.Cu@11.600,6.875; Pad B5 [Net-(J1-CC2)] of J1 on F.Cu@12.250,6.875",
+  "invalid_outline|PCB@0.000,0.000"
+ ],
+ "errors": {
+  "clearance": 11,
+  "invalid_outline": 1
+ },
+ "warnings": {
+  "lib_footprint_issues": 5
+ },
+ "unconnected": 17,
+ "unconnected_by_net": {
+  "Net-(J1-CC2)": 1,
+  "GND": 8,
+  "VBUS": 3,
+  "Net-(J1-CC1)": 1,
+  "Net-(J1-Dp1)": 2,
+  "Net-(J1-Dn1)": 2
+ },
+ "islands_only": [],
+ "art_pads": [],
+ "art_hits": {}
+}
