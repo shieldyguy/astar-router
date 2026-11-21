@@ -21,6 +21,7 @@ this private repo). Releases are made when a tag `v*` is pushed, not on a push.
   copied beside it. A few seconds at most on the boards it is used for.
 - Exit 0 every net joined, 1 nets open (`astar: open: NET: why` lines say which), 2 the input could not
   be read, 3 a width narrowed under `--strict`, 4 astar's own check found fault with its plan.
+- The folder OUT goes in must exist already (exit 2 says so). Write OUT somewhere new, not over IN.
 - `astar` with no arguments is the usage; `astar --passes` the passes in order.
 - **Refill and judge before you believe it.** astar does not fill zones: a plane it pours has no fill in
   OUT, and a zone that came filled keeps its old fill. Always:
