@@ -10,7 +10,8 @@ it works and where it stands; this page is how to use it and what not to trust i
     ./install.sh --dest DIR       # somewhere else; --which says what it would do; --help the rest
 
 Without cargo it takes the newest release's binary (Linux x86_64, macOS arm64; needs `gh` logged in to
-this private repo). Releases are made when a tag `v*` is pushed, not on a push.
+this private repo); `./install.sh --release` takes it even where cargo is. A release is made only when
+asked: `git push origin main:release` builds, tests and publishes `build-<sha12>` for both platforms.
 
 ## Use it
 

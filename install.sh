@@ -7,7 +7,8 @@
 #     ./install.sh --release       take the release binary even where cargo is found (needs `gh`, logged in)
 #     ./install.sh --which         say what it would do, and do nothing
 #
-# Releases are made when a tag `v*` is pushed (.github/workflows/release.yml): Linux x86_64 and macOS arm64.
+# Releases (Linux x86_64, macOS arm64) are made when asked, by pushing a commit to the branch `release`
+# (.github/workflows/release.yml); the newest one is taken.
 # It ends with a self-check: one small scene routed, every net joined.
 
 set -eu
@@ -55,7 +56,14 @@ else
         exit 1
     fi
     tmp=$(mktemp -d)
-    gh release download --repo shieldyguy/astar-router --pattern "$asset" --dir "$tmp"
+    repo=repos/shieldyguy/astar-router
+    id=$(gh api "$repo/releases/latest" --jq ".assets[] | select(.name == \"$asset\") | .id")
+    if [ -z "$id" ]; then
+        echo "install.sh: the newest release has no $asset" >&2
+        exit 1
+    fi
+    echo "install.sh: taking $asset from release $(gh api "$repo/releases/latest" --jq .tag_name)"
+    gh api -H "Accept: application/octet-stream" "$repo/releases/assets/$id" > "$tmp/$asset"
     tar -xzf "$tmp/$asset" -C "$tmp"
     cp "$tmp/astar" "$dest/astar"
     rm -rf "$tmp"

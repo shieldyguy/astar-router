@@ -1,10 +1,14 @@
-# A release for every tag v*: the astar binary for Linux x86_64 and macOS arm64, which ./install.sh takes
-# where there is no cargo. Nothing runs on an ordinary push.
+# The astar binary for Linux x86_64 and macOS arm64, which ./install.sh takes where there is no cargo.
+# A release is made only when asked: push the commit to the branch `release`
+# (git push origin main:release), and it is named build-<sha12>; a tag v* makes one under the tag's name.
+# Nothing runs on an ordinary push.
 name: release
 
 on:
   push:
+    branches: ["release"]
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -34,6 +38,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if [ "$GITHUB_REF_TYPE" = tag ]; then name="$GITHUB_REF_NAME"; else name="build-${GITHUB_SHA:0:12}"; fi
           # the two jobs may both try to make the release: the second finds it there
-          gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes || true
-          gh release upload "$GITHUB_REF_NAME" ${{ matrix.asset }} --clobber
+          gh release view "$name" > /dev/null 2>&1 || gh release create "$name" --target "$GITHUB_SHA" --title "$name" --notes "astar at $GITHUB_SHA" || true
+          gh release upload "$name" ${{ matrix.asset }} --clobber
