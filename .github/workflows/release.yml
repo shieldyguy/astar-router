@@ -21,7 +21,7 @@ jobs:
         include:
           - os: ubuntu-22.04
             asset: astar-linux-x86_64.tar.gz
-          - os: macos-14
+          - os: macos-15
             asset: astar-macos-arm64.tar.gz
     runs-on: ${{ matrix.os }}
     steps:
