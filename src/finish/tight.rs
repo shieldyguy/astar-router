@@ -16,9 +16,14 @@ impl Router {
     /// not clear for it even at `t_min`.
     pub(crate) fn line_necks(&self, net: u16, l: usize, x: i32, y: i32, dx: i32, dy: i32, k: i32, t_min: crate::field::Dist, t_nom: crate::field::Dist) -> Option<u32> {
         let mut n = 0;
+        let keep = self.keeps.get(&net);
         for s in 1..=k {
             let (nx, ny) = (x + dx * s, y + dy * s);
             if nx < 0 || ny < 0 || nx >= self.f.w as i32 || ny >= self.f.h as i32 {
+                return None;
+            }
+            // (a net kept to layers stays where it may run)
+            if keep.map_or(false, |q| q.off(l, self.f.wx(nx as usize), self.f.wy(ny as usize))) {
                 return None;
             }
             let c = &self.f.cells[self.f.idx(l, ny as usize, nx as usize)];

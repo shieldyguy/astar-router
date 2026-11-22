@@ -105,7 +105,10 @@ A net is named by its `name`; `""` is no net. An optional key left out takes the
 
 `name` (required, once). `role`: `signal` (the default), `rail` or `ground`: 1.1 called this `class`.
 `class`: the name of its net class (default `Default`). `width`, `clearance`, `via`, `drill`: the net's
-own, over its class's. The nets to join are the nets with two or more pads; a net named by no pad is fine.
+own, over its class's. `layers`: the copper layers its tracks are kept to (`["B.Cu"]`); left out, any. A
+pad of such a net on another layer is left by a stub to a via, no longer than `--stub` (2.5 mm) and as
+short as there is room for; copper it already has stays where it is. The nets to join are the nets with
+two or more pads; a net named by no pad is fine.
 
 ### `pads`
 
