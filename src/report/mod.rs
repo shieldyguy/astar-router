@@ -109,6 +109,16 @@ impl Router {
             // out among the other nets a matter of room
             let name = |p: &usize| format!("{}.{}", self.sc.pads[*p].ref_, self.sc.pads[*p].num);
             let of_net = || self.jobs.iter().filter(move |j| j.net == n);
+            // what shuts the first walled pad in, and what stands in the way of the others, by name
+            let wall: Vec<String> = of_net().flat_map(|j| j.open.iter().filter(move |p| j.walled.contains(p))).next().map_or(Vec::new(), |&p| self.wall_of(p));
+            let mut through: Vec<(u16, (f64, f64))> = Vec::new();
+            for j in of_net() {
+                for &b in &j.blockers {
+                    if !through.iter().any(|t| t.0 == b.0) {
+                        through.push(b);
+                    }
+                }
+            }
             let mut walled: Vec<String> = of_net().flat_map(|j| j.open.iter().filter(move |p| j.walled.contains(p))).map(name).collect();
             let mut crowded: Vec<String> = of_net().flat_map(|j| j.open.iter().filter(move |p| !j.walled.contains(p))).map(name).collect();
             // (a part's pads of one number, a mounting hole's ring of them, are named once)
@@ -116,10 +126,21 @@ impl Router {
             crowded.dedup();
             let mut why = String::new();
             if !walled.is_empty() {
-                why += &format!("; the board itself leaves no way to {}: what stays round it (pads, an edge, a keep-out, copper the board came with) shuts it in, whatever the other nets do", walled.join(", "));
+                // (named where the flood round the pad says what stopped it)
+                let by = if wall.is_empty() {
+                    "what stays round it (pads, an edge, a keep-out, copper the board came with) shuts it in".to_string()
+                } else {
+                    let (last, first) = wall.split_last().unwrap();
+                    format!("{} is shut in by {}", walled[0], if first.is_empty() { last.clone() } else { format!("{} and {}", first.join(", "), last) })
+                };
+                why += &format!("; the board itself leaves no way to {}: {}, whatever the other nets do", walled.join(", "), by);
             }
             if !crowded.is_empty() {
                 why += &format!("; no way was found to {} among the other nets", crowded.join(", "));
+                if !through.is_empty() {
+                    let named: Vec<String> = through.iter().take(4).map(|&(b, at)| format!("{} at ({:.2}, {:.2})", self.sc.nets[b as usize].name, at.0, at.1)).collect();
+                    why += &format!(": the nearest way runs through {}{}", named.join(", "), if through.len() > 4 { format!(" and {} more", through.len() - 4) } else { String::new() });
+                }
             }
             self.note("open", n, at, format!("{} of {} pads joined{}", got, all, why));
         }

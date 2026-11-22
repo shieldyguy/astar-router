@@ -109,18 +109,42 @@ impl Shape {
 
     /// Whether the copper of the two shapes overlaps by `by` or more.
     pub fn overlaps(&self, o: &Shape, by: f64) -> bool {
-        // a shape is a skeleton (a point, a segment, a polygon) grown by r: two overlap when one's
-        // skeleton comes within its own r of the other's copper, or lies wholly inside it
+        // a shape is a skeleton (a point, a segment, a polygon) grown by r. A point or a segment overlaps
+        // another shape where it comes within its own r of that shape's copper.
         let near = |a: (f64, f64), b: (f64, f64), r: f64, other: &Shape| other.dist_seg(a, b) <= r - by;
-        let edges = |pts: &[(f64, f64)], r: f64, other: &Shape| {
-            let n = pts.len();
-            (0..n).any(|i| near(pts[i], pts[(i + 1) % n], r, other)) || (n > 0 && other.depth(pts[0].0, pts[0].1) >= by.max(0.0) && other.dist(pts[0].0, pts[0].1) == 0.0)
-        };
         match (self, o) {
             (Shape::Circle { x, y, r }, _) => near((*x, *y), (*x, *y), *r, o),
             (Shape::Capsule { ax, ay, bx, by: b1, r }, _) => near((*ax, *ay), (*bx, *b1), *r, o),
             (Shape::Poly { .. }, Shape::Circle { .. }) | (Shape::Poly { .. }, Shape::Capsule { .. }) => o.overlaps(self, by),
-            (Shape::Poly { pts, r }, Shape::Poly { pts: q, r: rq }) => edges(pts, *r, o) || edges(q, *rq, self),
+            (Shape::Poly { pts, r }, Shape::Poly { pts: q, r: rq }) => {
+                if pts.is_empty() || q.is_empty() {
+                    return false;
+                }
+                // two polygons: their areas meet (two edges cross, or one holds the other's middle or a
+                // corner of it), or their edges come within the two radii of each other
+                let mid = |p: &[(f64, f64)]| (p.iter().map(|v| v.0).sum::<f64>() / p.len() as f64, p.iter().map(|v| v.1).sum::<f64>() / p.len() as f64);
+                let inside = |p: &[(f64, f64)], other: &Shape| {
+                    let m = mid(p);
+                    other.depth(m.0, m.1) > 0.0 || p.iter().any(|v| other.depth(v.0, v.1) > by.max(0.0))
+                };
+                let (bare_a, bare_b) = (Shape::Poly { pts: pts.clone(), r: 0.0 }, Shape::Poly { pts: q.clone(), r: 0.0 });
+                if inside(pts, &bare_b) || inside(q, &bare_a) {
+                    return true;
+                }
+                let (n, m) = (pts.len(), q.len());
+                let mut least = f64::MAX;
+                for i in 0..n {
+                    for k in 0..m {
+                        let (a, b, c, d) = (pts[i], pts[(i + 1) % n], q[k], q[(k + 1) % m]);
+                        let (d1, d2, d3, d4) = (orient(c, d, a), orient(c, d, b), orient(a, b, c), orient(a, b, d));
+                        if d1 * d2 < 0.0 && d3 * d4 < 0.0 {
+                            return true;
+                        }
+                        least = least.min(seg_seg_dist2(a, b, c, d));
+                    }
+                }
+                least.sqrt() <= r + rq - by
+            }
         }
     }
 

@@ -3,7 +3,7 @@
  "units": "mm",
  "source": {
   "board": "old_touch",
-  "note": "copper that touches is joined, as KiCad counts it: E a tie whose round end lies on the big pad, C a track over a pad, X two tracks that cross, P pads that lie on each other; N a tie that stops 0.01 mm clear of its pad and is not joined"
+  "note": "copper that touches is joined, as KiCad counts it: E a tie whose round end lies on the big pad, C a track over a pad, X two tracks that cross, P pads that lie on each other (a hole's pad inside a big one, another in its corner with its rim at two sides, a small pad over its edge), Q two bars that cross as a plus; N a tie that stops 0.01 mm clear of its pad and is not joined"
  },
  "stack": {
   "copper": [
@@ -68,6 +68,9 @@
   },
   {
    "name": "N"
+  },
+  {
+   "name": "Q"
   }
  ],
  "pads": [
@@ -599,6 +602,110 @@
      [
       4.5,
       10.7
+     ]
+    ],
+    "r": 0
+   }
+  },
+  {
+   "ref": "UP",
+   "num": "1",
+   "net": "P",
+   "at": [
+    25.25,
+    3.25
+   ],
+   "fp": [
+    26,
+    4
+   ],
+   "size": [
+    0.5,
+    0.5
+   ],
+   "tht": true,
+   "drill": 0.2,
+   "shape": {
+    "circle": [
+     25.25,
+     3.25,
+     0.25
+    ]
+   }
+  },
+  {
+   "ref": "UQ",
+   "num": "1",
+   "net": "Q",
+   "at": [
+    26,
+    9
+   ],
+   "fp": [
+    26,
+    9
+   ],
+   "size": [
+    3,
+    0.6
+   ],
+   "tht": false,
+   "shape": {
+    "poly": [
+     [
+      24.5,
+      8.7
+     ],
+     [
+      27.5,
+      8.7
+     ],
+     [
+      27.5,
+      9.3
+     ],
+     [
+      24.5,
+      9.3
+     ]
+    ],
+    "r": 0
+   }
+  },
+  {
+   "ref": "UQ",
+   "num": "1",
+   "net": "Q",
+   "at": [
+    26,
+    9
+   ],
+   "fp": [
+    26,
+    9
+   ],
+   "size": [
+    0.6,
+    3
+   ],
+   "tht": false,
+   "shape": {
+    "poly": [
+     [
+      25.7,
+      7.5
+     ],
+     [
+      26.3,
+      7.5
+     ],
+     [
+      26.3,
+      10.5
+     ],
+     [
+      25.7,
+      10.5
      ]
     ],
     "r": 0

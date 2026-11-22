@@ -52,3 +52,13 @@ fn the_run_prints_each_open_net_and_why() {
     let said = format!("{}{}", String::from_utf8_lossy(&out.stdout), String::from_utf8_lossy(&out.stderr));
     assert!(said.contains("astar: open: B: 1 of 2 pads joined; the board itself leaves no way to B2.1"), "{}", said);
 }
+
+/// What is in the way is named. A pad the board shuts in says what stands round it; a net left out among
+/// the other nets says whose copper its nearest way runs through, and where.
+#[test]
+fn what_is_in_the_way_is_named() {
+    let why = open_note(&plan("walled.json"));
+    assert!(why.contains("B2.1 is shut in by a keep-out"), "{}", why);
+    let why = open_note(&plan("room.json"));
+    assert!(why.contains("among the other nets: the nearest way runs through B at ("), "{}", why);
+}

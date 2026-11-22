@@ -192,6 +192,8 @@ impl Router {
                 break;
             }
         }
+        // what is still open for want of room says what is in its way
+        self.blame();
         self.stats.route_s = t.elapsed().as_secs_f64();
         if let Ok(dir) = std::env::var("ASTAR_POUR_DUMP") {
             self.dump_pours(&dir);

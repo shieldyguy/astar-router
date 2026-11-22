@@ -165,6 +165,43 @@ impl Router {
         true
     }
 
+    /// What stands in the way of each job still open for want of room (`Job::blockers`): the job is laid
+    /// once more, free to run through other nets' copper, the nets it runs through and where are noted,
+    /// and the board is put back as it was. Run last, on the board as it will be handed over; the first
+    /// dozen open jobs are asked, as the report names a dozen.
+    pub(crate) fn blame(&mut self) {
+        let open: Vec<usize> = (0..self.jobs.len()).filter(|&j| self.for_room(j) && !self.jobs[j].locked).take(12).collect();
+        for j in open {
+            if self.out_of_time() {
+                return;
+            }
+            let was = self.keep();
+            let mut touched: Vec<usize> = Vec::new();
+            self.lift_noting(j, &mut touched);
+            self.strict = false;
+            let pressure = std::mem::replace(&mut self.pressure, 1.0);
+            self.route_job(j);
+            self.strict = true;
+            self.pressure = pressure;
+            let net = self.jobs[j].net;
+            let reach = self.t_min(net) as f64 * crate::field::TICK + 1e-6;
+            let per = self.f.w * self.f.h;
+            let mut who: Vec<(u16, (f64, f64))> = Vec::new();
+            for &ci in &self.jobs[j].clash_cells {
+                let (l, y, x) = (ci / per, (ci % per) / self.f.w, ci % self.f.w);
+                let mut hit: Vec<(u32, u16)> = Vec::new();
+                self.f.foreign_near(l, y, x, net, reach, &mut hit);
+                for (_, n) in hit {
+                    if !who.iter().any(|w| w.0 == n) {
+                        who.push((n, (self.f.wx(x), self.f.wy(y))));
+                    }
+                }
+            }
+            self.put_back(was, &touched);
+            self.jobs[j].blockers = who;
+        }
+    }
+
     /// The nets the rounds left open, one at a time, the one with the fewest pads open first. The board
     /// is whole and nothing clashes when this starts, and the same when it ends.
     pub(crate) fn mend(&mut self) {

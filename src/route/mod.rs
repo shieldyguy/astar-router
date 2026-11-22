@@ -16,6 +16,7 @@ mod old;
 mod probe;
 mod redraw;
 mod solve;
+mod wall;
 
 pub use access::Access;
 pub use cfg::Cfg;

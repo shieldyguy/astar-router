@@ -92,6 +92,9 @@ pub struct Job {
     pub walled: Vec<usize>,
     /// and how many of its loose pieces of old copper (`loose`) are walled in the same way
     pub walled_loose: usize,
+    /// what stands in its way where it is open for want of room: the nets its nearest way runs through,
+    /// and where (`Router::blame`)
+    pub blockers: Vec<(u16, (f64, f64))>,
     /// its copper is locked (`Router::lock_job`): the job is never lifted, so never routed again
     pub locked: bool,
     /// old copper of the net that no pad stands on and that could not be joined to the rest: where
@@ -116,7 +119,7 @@ pub struct Job {
 
 impl Job {
     pub fn new(kind: JobKind, net: u16, pad: Option<usize>) -> Job {
-        Job { kind, net, pad, objs: vec![], tracks: vec![], vias: vec![], small: vec![], nodes: 0, clash_cells: vec![], done: false, open: vec![], tries: 0, walled: vec![], walled_loose: 0, locked: false, loose: vec![], pour_pads: vec![], pour_ends: vec![], refills: 0, moved: vec![], paths: vec![], rough: false, ends: (0, 0) }
+        Job { kind, net, pad, objs: vec![], tracks: vec![], vias: vec![], small: vec![], nodes: 0, clash_cells: vec![], done: false, open: vec![], tries: 0, walled: vec![], walled_loose: 0, blockers: vec![], locked: false, loose: vec![], pour_pads: vec![], pour_ends: vec![], refills: 0, moved: vec![], paths: vec![], rough: false, ends: (0, 0) }
     }
 }
 

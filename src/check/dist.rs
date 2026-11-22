@@ -144,11 +144,12 @@ pub fn gap(a: &Solid, b: &Solid) -> (f64, Pt) {
         });
     });
     let g = best.0 - a.r() - b.r();
+    // one lies inside the other's area: whole (no edge of one is near the other), or with its rim just
+    // at the other's edge (a hole's round pad in the corner of a thermal pad, a radius from two sides)
+    if b.holds(a.any_point()) || a.holds(b.any_point()) {
+        return (WITHIN, a.any_point());
+    }
     if g > 0.0 {
-        // no edge of one is near the other: they are apart, or one lies whole inside the other's area
-        if b.holds(a.any_point()) || a.holds(b.any_point()) {
-            return (WITHIN, a.any_point());
-        }
         return (g, best.1);
     }
     // two areas whose edges meet overlap, however thin their rims
@@ -192,5 +193,8 @@ mod tests {
         let island = Solid::Area { outer: vec![(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0)], holes: vec![vec![(4.0, 4.0), (6.0, 4.0), (6.0, 6.0), (4.0, 6.0)]], r: 0.0 };
         assert!((gap(&Solid::circle(5.0, 5.0, 0.3), &island).0 - 0.7).abs() < 1e-12);
         assert!(gap(&Solid::circle(2.0, 2.0, 0.3), &island).0 <= WITHIN);
+        // a round pad inside a square one, its rim at two of the square's sides: it lies within it
+        assert!(gap(&Solid::circle(0.25, 0.25, 0.25), &pad).0 <= WITHIN);
+        assert!(gap(&pad, &Solid::circle(0.25, 0.25, 0.25)).0 <= WITHIN);
     }
 }
