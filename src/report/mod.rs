@@ -59,20 +59,6 @@ impl Router {
             });
             self.note("kept", 0, None, format!("the board came with {} tracks and {} vias: they stay where they are, {} pads of {} nets stand on them, and new tracks start and end on them", self.old.pieces.0, self.old.pieces.1, pads, nets));
         }
-        // nets kept to layers: how much runs where
-        let mut kept: Vec<u16> = self.keeps.keys().copied().collect();
-        kept.sort();
-        for n in kept {
-            let nl = self.sc.layers.len();
-            let mut mm = vec![0.0f64; nl];
-            for t in self.jobs.iter().filter(|j| j.net == n).flat_map(|j| j.tracks.iter()) {
-                mm[t.layer as usize] += t.length();
-            }
-            let keep = self.sc.nets[n as usize].keep;
-            let (on, other): (f64, Vec<String>) = ((0..nl).filter(|l| keep & (1 << l) != 0).map(|l| mm[l]).sum(), (0..nl).filter(|&l| keep & (1 << l) == 0 && mm[l] > 0.0).map(|l| format!("{:.1} mm on {}", mm[l], self.sc.layers[l])).collect());
-            let stubs = if other.is_empty() { String::new() } else { format!("; {} from its pads there to their vias", other.join(", ")) };
-            self.note("layers", n, None, format!("kept to {}: {:.1} mm there{}", self.kept_to(n), on, stubs));
-        }
         // nets that were not asked for
         let left: Vec<&str> = self.sc.nets.iter().skip(1).filter(|n| n.pads.len() >= 2 && !n.in_scope).map(|n| n.name.as_str()).collect();
         if !left.is_empty() {

@@ -145,9 +145,6 @@ pub struct Net {
     pub impedance: Option<Impedance>,
     /// (scene 2) false: the net is not to be routed
     pub in_scope: bool,
-    /// the layers its tracks are kept to, as a mask over `Scene::layers`; 0: any layer. A pad of the net
-    /// on another layer is left by a short stub to a via (`Cfg::stub_mm`).
-    pub keep: u32,
 }
 
 impl Net {
@@ -159,7 +156,7 @@ impl Net {
 
     /// A net as scene 1.1 knows one.
     pub fn plain(name: String, class: Class, width: f64, clearance: f64) -> Net {
-        Net { name, class, width, clearance, pads: vec![], plane: None, netclass: 0, via: None, drill: None, impedance: None, in_scope: true, keep: 0 }
+        Net { name, class, width, clearance, pads: vec![], plane: None, netclass: 0, via: None, drill: None, impedance: None, in_scope: true }
     }
 }
 

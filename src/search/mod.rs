@@ -36,29 +36,8 @@ struct Aside {
     par: u8,
     since: u8,
 }
-/// A net kept to layers: where its tracks may run.
-pub struct Keep {
-    /// the layers it may run on, as a mask
-    pub layers: u32,
-    /// its pads: (the layers the pad is on, x, y)
-    pub pads: Vec<(u32, f64, f64)>,
-    /// how far from a pad of its own it may run on that pad's layer, squared
-    pub reach2: f64,
-}
-
-impl Keep {
-    /// Whether a node on layer l is closed to the net: the layer is not one of its own, and no pad of the
-    /// net on that layer is near enough for this to be the way from the pad to its via.
-    #[inline]
-    pub fn off(&self, l: usize, x: f64, y: f64) -> bool {
-        self.layers & (1 << l) == 0 && !self.pads.iter().any(|&(m, px, py)| m & (1 << l) != 0 && (px - x) * (px - x) + (py - y) * (py - y) <= self.reach2)
-    }
-}
-
 pub struct Query<'a> {
     pub net: u16,
-    /// the net is kept to layers (`Keep`)
-    pub keep: Option<&'a Keep>,
     /// thresholds in ticks: the narrowest track, the net's own width, a via
     pub t_min: Dist,
     /// below `t_low` a node is surely too near other copper; from there up to `t_min` the grid cannot
@@ -372,7 +351,6 @@ impl Search {
                 let (here_ts, here_td) = (sdist(here, net) < q.t_min, ddist(here, net) < q.t_min);
                 let at = (f.wx(x), f.wy(y));
                 let here_narrow = wide && !here_own && (sdist(here, net) < q.t_nom || ddist(here, net) < q.t_nom);
-                let stub = q.keep.map_or(false, |k| k.layers & (1 << l) == 0);
                 for nd in 0..8usize {
                     let mut turn = turns[nd];
                     if turn == u32::MAX {
@@ -390,18 +368,13 @@ impl Search {
                         continue;
                     }
                     let to = (f.wx(nx), f.wy(ny));
-                    if q.keep.map_or(false, |k| k.off(l, to.0, to.1)) {
-                        continue;
-                    }
                     if (here_ts || sd < q.t_min) && !q.tight.fixed(at, to, q.half, net, l) {
                         continue;
                     }
                     let dd = ddist(cell, net);
                     // through another net's routed copper?
                     let through = dd < q.t_low || ((here_td || dd < q.t_min) && !q.tight.routed(f, at, to, q.half, net, l));
-                    // (off the layers a net is kept to, it runs only from a pad to that pad's via: the
-                    // shorter that is the better, so a step there costs three)
-                    let mut cost = if stub { step[nd & 1] * 3 } else { step[nd & 1] };
+                    let mut cost = step[nd & 1];
                     let own = cell.sn1 == net && cell.sd1 == 0;
                     if own {
                         // inside a pad of its own: the copper is there already
@@ -566,7 +539,7 @@ impl Search {
                 }
                 None => {
                     for l2 in 0..nl {
-                        if l2 == l || c.step[l2][0] == 0 || q.keep.map_or(false, |k| k.off(l2, f.wx(x), f.wy(y))) {
+                        if l2 == l || c.step[l2][0] == 0 {
                             continue;
                         }
                         if put_aside {

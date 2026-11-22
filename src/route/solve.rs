@@ -58,7 +58,6 @@ impl Router {
         let tight = super::exact::Tight { statics: &self.statics, clr: &self.clr_tab, more: &self.more_tab };
         let q = Query {
             net,
-            keep: self.keeps.get(&net),
             t_min: self.t_min(net),
             t_low: self.t_low(net),
             half: self.w_min(net) / 2.0,
@@ -141,8 +140,6 @@ impl Router {
         let small_too = self.t_via_s != 0 && self.t_via_of(net) == self.t_via;
         let site = |k: usize| sites[k >> 6] & (1 << (k & 63)) != 0 || (small_too && small.get(k >> 6).map_or(false, |m| m & (1 << (k & 63)) != 0));
         let plane = ask.plane_goal.map(|p| p as usize);
-        let keep = self.keeps.get(&net);
-        let off = |n: usize| keep.map_or(false, |k| k.off(n / per, f.wx((n % per) % w), f.wy((n % per) / w)));
         let mut seen = vec![0u64; per * nl / 64 + 1];
         let mut todo: Vec<usize> = Vec::new();
         for &(l, y, x, _) in &ask.sources {
@@ -165,7 +162,7 @@ impl Router {
             if self.costs.step[l][0] != 0 {
                 for nd in 0..8 {
                     let n = l * per + ((y as i32 + DY[nd]) as usize) * w + (x as i32 + DX[nd]) as usize;
-                    if seen[n >> 6] & (1 << (n & 63)) == 0 && sdist(&f.cells[n], net) >= t && !off(n) {
+                    if seen[n >> 6] & (1 << (n & 63)) == 0 && sdist(&f.cells[n], net) >= t {
                         seen[n >> 6] |= 1 << (n & 63);
                         todo.push(n);
                     }
@@ -178,7 +175,7 @@ impl Router {
                 }
                 for l2 in (0..nl).filter(|&l2| l2 != l && self.costs.step[l2][0] != 0) {
                     let n = l2 * per + k;
-                    if seen[n >> 6] & (1 << (n & 63)) == 0 && !off(n) {
+                    if seen[n >> 6] & (1 << (n & 63)) == 0 {
                         seen[n >> 6] |= 1 << (n & 63);
                         todo.push(n);
                     }

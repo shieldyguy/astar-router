@@ -226,7 +226,6 @@ mod tests {
         let tight = crate::route::exact::Tight { statics: &r.statics, clr: &r.clr_tab, more: &r.more_tab };
         let q = Query {
             net: 1,
-            keep: None,
             t_min: r.t_min(1),
             t_low: r.t_low(1),
             half: r.w_min(1) / 2.0,

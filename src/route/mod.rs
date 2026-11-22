@@ -116,8 +116,6 @@ pub struct Router {
     pub(crate) more_tab: Vec<f64>,
     /// the nets whose copper the net being mended went through, this try, and those the next try keeps
     /// off (`mend`)
-    /// the nets kept to layers, and where each may run (`search::Keep`)
-    pub(crate) keeps: HashMap<u16, crate::search::Keep>,
     pub(crate) tried: Vec<u16>,
     pub(crate) shun: Vec<u16>,
     pub abandoned: bool,
@@ -230,16 +228,11 @@ pub fn like(pattern: &str, name: &str) -> bool {
     p[i..].iter().all(|&c| c == '*')
 }
 
-/// What the settings ask of the nets: which are routed (`--nets`, `--except`, within what the scene asks
-/// for itself), and which are kept to layers (`--layers`, over the scene's own).
+/// The nets the settings ask for (`--nets`, `--except`), within what the scene asks for itself.
 pub fn ask(sc: &mut Scene, cfg: &Cfg) {
-    let layers = sc.layers.clone();
     for n in sc.nets.iter_mut().skip(1) {
         if (!cfg.nets.is_empty() && !cfg.nets.iter().any(|p| like(p, &n.name))) || cfg.except.iter().any(|p| like(p, &n.name)) {
             n.in_scope = false;
-        }
-        for (_, names) in cfg.layers.iter().filter(|(p, _)| like(p, &n.name)) {
-            n.keep = names.iter().filter_map(|l| layers.iter().position(|x| x == l)).fold(0, |m, l| m | (1 << l));
         }
     }
 }
@@ -263,23 +256,6 @@ pub fn check(sc: &Scene, cfg: &Cfg) -> Result<(), String> {
                 return Err(format!("{} {}: the board has no net of that name", flag, name));
             }
         }
-    }
-    for (name, layers) in &cfg.layers {
-        if !sc.nets.iter().skip(1).any(|n| like(name, &n.name)) {
-            return Err(format!("--layers {}: the board has no net of that name", name));
-        }
-        for l in layers {
-            if !sc.layers.contains(l) {
-                return Err(format!("--layers {}={}: the board has no copper layer {} (it has {})", name, layers.join("+"), l, sc.layers.join(", ")));
-            }
-        }
-    }
-    // a net kept to layers needs one of them to run on
-    let mut asked = sc.clone();
-    ask(&mut asked, cfg);
-    let planes: u32 = asked.nets.iter().filter_map(|n| n.plane).fold(0, |m, l| m | (1 << l));
-    for n in asked.nets.iter().skip(1).filter(|n| n.keep != 0 && n.plane.is_none() && n.keep & !planes == 0) {
-        return Err(format!("{} is kept to layers that are all another net's plane: it has nowhere to run", n.name));
     }
     let (minx, miny, maxx, maxy) = extent(sc);
     let (_, _, w, h) = Field::grid(minx, miny, maxx, maxy, cfg.pitch, (0.0, 0.0));
@@ -626,7 +602,6 @@ impl Router {
             notes: Vec::new(),
             clr_tab: Vec::new(),
             more_tab: Vec::new(),
-            keeps: HashMap::new(),
             tried: Vec::new(),
             shun: Vec::new(),
             abandoned: false,
@@ -642,12 +617,6 @@ impl Router {
         r.more_tab = (0..r.sc.nets.len()).map(|n| r.more_clr(n as u16)).collect();
         r.find_pad_nodes();
         r.find_old();
-        // the nets kept to layers: each with its pads, which it may leave on their own layer
-        let all: u32 = (1u32 << nl) - 1;
-        for ni in (1..r.sc.nets.len()).filter(|&i| r.sc.nets[i].keep != 0 && r.sc.nets[i].plane.is_none()) {
-            let pads = r.sc.nets[ni].pads.iter().map(|&p| (if r.sc.pads[p].tht { all } else if r.sc.pads[p].back { 1 << (nl - 1) } else { 1 }, r.sc.pads[p].x, r.sc.pads[p].y)).collect();
-            r.keeps.insert(ni as u16, crate::search::Keep { layers: r.sc.nets[ni].keep, pads, reach2: r.cfg.stub_mm * r.cfg.stub_mm });
-        }
         r.wear = vec![0u8; r.f.cells.len()];
         Ok(r)
     }
