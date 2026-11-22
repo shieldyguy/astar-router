@@ -24,6 +24,22 @@ impl StaticObj {
     }
 }
 
+/// What an object that asks less than the board's clearance (`extra` below 0: a keep-out, which asks
+/// none) is stamped into the field with. The field holds one distance a node, the object's own grown by
+/// the clearance it does not ask, and a track is cleared for a step between two nodes by that distance
+/// with an allowance for the sag of the straight piece toward a corner (`Router::thr`). The sag is that
+/// of a track as wide as its half-width and the clearance together; past a corner that asks no clearance
+/// the real sag, of the half-width alone, is more. The difference at the narrowest track of the board
+/// (half-width `half`), where it is most, comes off what is stamped, so the grid is sure only where the
+/// piece is clear and the band below it is measured (`Tight`).
+pub(crate) fn stamped(extra: f64, pitch: f64, half: f64) -> f64 {
+    if extra >= 0.0 {
+        return extra;
+    }
+    let (c, s) = (-extra, pitch * pitch / 2.0);
+    extra + ((half * half + s).sqrt() - ((half + c) * (half + c) + s).sqrt() + c).max(0.0)
+}
+
 pub struct StaticIndex {
     pub objs: Vec<StaticObj>,
     pub(crate) x0: f64,
@@ -134,5 +150,36 @@ impl Tight<'_> {
                 out.push((o.job, o.net));
             }
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::stamped;
+
+    /// Two nodes a diagonal step apart, a corner that asks no clearance anywhere beside them: wherever
+    /// the grid is sure of both nodes, the track between them is clear of the corner.
+    #[test]
+    fn where_the_grid_is_sure_beside_a_keep_out_the_track_is_clear_of_it() {
+        let (p, c): (f64, f64) = (0.1, 0.2);
+        for &low in &[0.05f64, 0.0635, 0.1] {
+            for &half in &[low, 0.15, 0.25] {
+                let sure = ((half + c) * (half + c) + p * p / 2.0).sqrt();
+                let extra = stamped(-c, p, low);
+                let (a, b) = ((0.0, 0.0), (p, -p));
+                let mut tightest = f64::MAX;
+                for i in -80..=120 {
+                    for j in -120..=80 {
+                        let k = (i as f64 * 0.005, j as f64 * 0.005);
+                        let d = |q: (f64, f64)| crate::geom::hypot(k.0 - q.0, k.1 - q.1);
+                        if d(a) - extra >= sure && d(b) - extra >= sure {
+                            tightest = tightest.min(crate::geom::seg_seg_dist2(a, b, k, k).sqrt());
+                        }
+                    }
+                }
+                assert!(tightest >= half, "half {half}, narrowest {low}: {tightest}");
+            }
+        }
+        assert_eq!(stamped(0.1, p, 0.05), 0.1, "what asks more than the board's clearance is stamped as it is");
     }
 }

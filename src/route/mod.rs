@@ -443,6 +443,8 @@ impl Router {
         }
         let rmax = reach + pitch + 0.03;
         let mut f = Field::new(minx, miny, maxx, maxy, pitch, nl, rmax, grid_offset(&sc, pitch));
+        // the narrowest track any net of the board is drawn at, by half (`exact::stamped`)
+        let low_half = sc.nets.iter().map(|n| n.width).fold(sc.rules.track, f64::min).min(sc.rules.floors.track.filter(|f| *f > 0.0).unwrap_or(f64::MAX)) / 2.0;
         let all: u32 = (1u32 << nl) - 1;
 
         // the fixed copper, as shapes: the board edge, holes, keep-outs, pads
@@ -464,8 +466,11 @@ impl Router {
             for &l in &k.layers {
                 m |= 1 << l;
             }
-            // (an area that lets one net through is that net's own to the field)
-            statics.add(StaticObj::fixed(Kind::Keepout, Shape::Poly { pts: k.poly.clone(), r: 0.0 }, m, k.net, -clr));
+            // (an area that lets one net through is that net's own to the field.) A track keeps no
+            // clearance from it, but its copper stays wholly outside: KiCad allows a keep-out no slack,
+            // so the track's edge stands a micron off, which is the slack everything else is measured to
+            // and as much again
+            statics.add(StaticObj::fixed(Kind::Keepout, Shape::Poly { pts: k.poly.clone(), r: 0.0 }, m, k.net, -clr + 0.001));
         }
         // copper the board came with and nobody may move: what the board and its footprints draw in
         // copper (an antenna, a tab, a logo, text), and tracks and vias already there. It is in the way
@@ -506,7 +511,7 @@ impl Router {
 
         // the board edge into the field, then everything outside it closed off
         for o in &statics.objs[..n_edge] {
-            f.stamp_static(&o.shape, o.lmask, o.net, o.extra);
+            f.stamp_static(&o.shape, o.lmask, o.net, exact::stamped(o.extra, cfg.pitch, low_half));
         }
         let t_edge = Self::thr(pitch, sc.rules.track.min(0.1) / 2.0, clr, true);
         let mut seen = vec![false; f.w * f.h];
@@ -546,7 +551,7 @@ impl Router {
         }
         drop(seen);
         for o in &statics.objs[n_edge..] {
-            f.stamp_static(&o.shape, o.lmask, o.net, o.extra);
+            f.stamp_static(&o.shape, o.lmask, o.net, exact::stamped(o.extra, cfg.pitch, low_half));
         }
 
         let t_via = Self::thr(pitch, via_r, clr, false);

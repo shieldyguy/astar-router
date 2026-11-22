@@ -561,7 +561,7 @@ pub fn check(sc: &Scene, plan: &Plan, planes: &[(u16, usize)]) -> Report {
                             What::Npth if c.plan => (sc.rules.hole_clearance, EPS, "hole"),
                             What::Hole if c.net != h.net && (c.plan || h.plan) => (sc.rules.hole_clearance, EPS, "hole"),
                             What::Edge if c.plan => (sc.rules.edge, EDGE_EPS, "edge"),
-                            What::Keepout if c.plan && (h.net == 0 || h.net != c.net) && ((c.what == What::Track && h.own as u8 & 1 != 0) || (c.what == What::Via && h.own as u8 & 2 != 0)) => (0.0, EPS, "keepout"),
+                            What::Keepout if c.plan && (h.net == 0 || h.net != c.net) && ((c.what == What::Track && h.own as u8 & 1 != 0) || (c.what == What::Via && h.own as u8 & 2 != 0)) => (0.0, 0.0, "keepout"),
                             _ => continue,
                         }
                     }

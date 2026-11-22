@@ -61,9 +61,7 @@ Read its notes on stderr: it says what it ignored, but the exit code does not ch
   rules. Clearance rules without a condition are read.
 - **Nothing is lifted.** It keeps the copper a board has and never moves it, so old copper stays where
   a part has since moved.
-- **A pour-only keep-out is not seen by a plane astar pours itself.**
-- **Small faults KiCad calls errors**: a track can graze a keep-out's corner by under a micron; a thermal
-  relief can be left with one spoke.
+- **A small fault KiCad calls an error**: a thermal relief can be left with one spoke.
 - There is no default time limit (`--seconds S` sets one).
 
 ## Working on it
