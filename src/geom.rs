@@ -107,6 +107,23 @@ impl Shape {
         }
     }
 
+    /// Whether the copper of the two shapes overlaps by `by` or more.
+    pub fn overlaps(&self, o: &Shape, by: f64) -> bool {
+        // a shape is a skeleton (a point, a segment, a polygon) grown by r: two overlap when one's
+        // skeleton comes within its own r of the other's copper, or lies wholly inside it
+        let near = |a: (f64, f64), b: (f64, f64), r: f64, other: &Shape| other.dist_seg(a, b) <= r - by;
+        let edges = |pts: &[(f64, f64)], r: f64, other: &Shape| {
+            let n = pts.len();
+            (0..n).any(|i| near(pts[i], pts[(i + 1) % n], r, other)) || (n > 0 && other.depth(pts[0].0, pts[0].1) >= by.max(0.0) && other.dist(pts[0].0, pts[0].1) == 0.0)
+        };
+        match (self, o) {
+            (Shape::Circle { x, y, r }, _) => near((*x, *y), (*x, *y), *r, o),
+            (Shape::Capsule { ax, ay, bx, by: b1, r }, _) => near((*ax, *ay), (*bx, *b1), *r, o),
+            (Shape::Poly { .. }, Shape::Circle { .. }) | (Shape::Poly { .. }, Shape::Capsule { .. }) => o.overlaps(self, by),
+            (Shape::Poly { pts, r }, Shape::Poly { pts: q, r: rq }) => edges(pts, *r, o) || edges(q, *rq, self),
+        }
+    }
+
     /// How far inside the copper a point is: its distance to the edge, 0 when it is outside.
     pub fn depth(&self, px: f64, py: f64) -> f64 {
         match self {

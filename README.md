@@ -112,8 +112,10 @@ every run.
    those.
    **Copper already there** (`src/route/old.rs`). The tracks and vias a board comes with stay where
    they are and are part of their nets. What they join is joined: pads and pieces that touch (as KiCad
-   counts it: an end of one in the copper of the other) are one island, and an island comes into its
-   net's tree whole. Pads it joins get no track. A new track may start anywhere on it and end anywhere
+   counts it: their copper overlaps on a layer both are on, so a track whose round end lies on a pad,
+   a track that runs over one, two tracks that cross, and two pads that lie on each other with no track
+   at all) are one island, and an island comes into its net's tree whole. Pads it joins get no track;
+   the gate asks KiCad the same question of the same copper (`tests/touch_judge.py`). A new track may start anywhere on it and end anywhere
    on it, drawn to the old copper's own line. A piece no pad stands on is joined to its net like a pad
    (KiCad counts it open otherwise); one that cannot be is in the plan's notes (`loose`). On a plane
    net, a pad that old copper takes to a via in the plane needs no via, and pads joined by a track

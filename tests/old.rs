@@ -86,3 +86,30 @@ fn the_board_with_its_old_copper_checks_clean() {
     std::fs::remove_dir_all(&dir).ok();
     assert_eq!(checked.status.code(), Some(0), "{}{}", String::from_utf8_lossy(&checked.stdout), String::from_utf8_lossy(&checked.stderr));
 }
+
+/// tests/scenes/old_touch.json: copper that touches is joined, as KiCad counts it (the gate asks KiCad the
+/// same of this scene, tests/touch_judge.py). E: a tie from a pin whose round end lies on the thermal pad,
+/// its middle line 0.05 mm short of it. C: a track that runs over a pad, off its middle, with no end on it.
+/// X: two tracks that cross. P: pads that lie on each other with no track at all. None of them gets new
+/// copper. N: a tie that stops 0.01 mm clear of its pad is not joined, and is.
+#[test]
+fn copper_that_touches_is_joined_as_kicad_counts_it() {
+    let path = format!("{}/tests/scenes/old_touch.json", env!("CARGO_MANIFEST_DIR"));
+    let routed = route(Scene::load(&path).unwrap(), &Cfg::default()).unwrap();
+    assert!(routed.open_nets().is_empty());
+    let plan = astar::json::parse(&routed.plan()).unwrap();
+    for net in ["E", "C", "X", "P"] {
+        let new = plan.get("nets").arr().iter().find(|n| n.get("name").s() == Some(net)).map_or(0, |n| n.get("tracks").arr().len() + n.get("vias").arr().len());
+        assert_eq!(new, 0, "{} is joined as it stands, and got new copper", net);
+    }
+    let (pieces, _) = copper(&plan, "N");
+    assert!(!pieces.is_empty(), "N's tie stops clear of its pad: it is to be joined");
+    // astar's own check, which reads the copper anew, finds the nets whole
+    let dir = std::env::temp_dir().join(format!("astar-touch-test-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let file = dir.join("plan.json");
+    std::fs::write(&file, routed.plan()).unwrap();
+    let checked = std::process::Command::new(env!("CARGO_BIN_EXE_astar")).args(["check", &path, file.to_str().unwrap()]).output().unwrap();
+    std::fs::remove_dir_all(&dir).ok();
+    assert_eq!(checked.status.code(), Some(0), "{}{}", String::from_utf8_lossy(&checked.stdout), String::from_utf8_lossy(&checked.stderr));
+}

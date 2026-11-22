@@ -85,6 +85,7 @@ else
     lines "the bench five, judged" python3 tests/gate_bench.py --judge
     lines "the judge's planted errors" python3 tests/judge_plants.py
     lines "old copper, a pour and fine pitch, judged" python3 tests/gate_more.py
+    lines "what old copper joins, by KiCad and by astar" python3 tests/touch_judge.py
     # 10,000 bent scenes and every value of two fixtures changed alone, through the whole router: no panic
     check "the fuzz (tests/fuzz.rs, the two long ones)" nice cargo test --release --test fuzz -- --ignored
 fi

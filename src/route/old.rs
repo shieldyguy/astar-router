@@ -2,12 +2,15 @@
 //!
 //! Nothing here is moved or lifted. What it joins is joined: the pads a piece of old copper touches, and
 //! the pieces that touch each other, are one island, and an island comes into its net's tree whole, pads
-//! and copper. A new track may start or end anywhere on it. Two pieces touch as KiCad counts it: an end
-//! of one (a via's middle, a pad's middle) lies in the other's copper, on a layer both are on.
+//! and copper. A new track may start or end anywhere on it. Two pieces touch as KiCad counts it: their
+//! copper overlaps on a layer both are on, by a nanometre or more. That is so of a track whose round end
+//! lies on a pad, of a track that runs over a pad, of two tracks that cross, and of two pads that lie on
+//! each other with no track at all (a pin over the edge of a thermal pad, a hole's pad inside it): pads
+//! that touch are an island too.
 
 use super::{Node, Router};
 use crate::field::sdist;
-use crate::geom::{arc_points, hypot, Shape};
+use crate::geom::{arc_points, hypot, seg_seg_dist2, Shape};
 use crate::scene::PathPiece;
 use std::collections::HashMap;
 
@@ -20,6 +23,8 @@ pub(crate) struct Isle {
     pub nodes: Vec<Node>,
     /// the layers it reaches: its tracks' own, every layer of a via's span, every layer for a through pad
     pub layers: u32,
+    /// whether it has copper of its own: false for pads that lie on each other with no track between
+    pub copper: bool,
 }
 
 #[derive(Default)]
@@ -31,6 +36,8 @@ pub(crate) struct Old {
     pub at: HashMap<Node, (f64, f64)>,
     /// how many tracks and vias with a net the board came with
     pub pieces: (usize, usize),
+    /// how many islands are pads alone, lying on each other
+    pub pad_isles: usize,
 }
 
 /// One piece: a straight stretch of track, or a via.
@@ -43,13 +50,15 @@ struct Piece {
     via: bool,
 }
 
+/// How much two pieces of copper must overlap to be one: KiCad's unit of length, a nanometre.
+const TOUCH: f64 = 1e-6;
+
 impl Piece {
-    fn holds(&self, p: (f64, f64)) -> bool {
-        Shape::Capsule { ax: self.a.0, ay: self.a.1, bx: self.b.0, by: self.b.1, r: self.r }.dist(p.0, p.1) <= 1e-6
+    fn touches(&self, o: &Piece) -> bool {
+        seg_seg_dist2(self.a, self.b, o.a, o.b).sqrt() <= self.r + o.r - TOUCH
     }
-    /// The points another piece must hold for the two to be one: a track's two ends, a via's middle.
-    fn ends(&self) -> [(f64, f64); 2] {
-        [self.a, self.b]
+    fn on(&self, pad: &Shape) -> bool {
+        pad.dist_seg(self.a, self.b) <= self.r - TOUCH
     }
 }
 
@@ -87,20 +96,15 @@ impl Router {
             pieces.push(Piece { net: v.net, lmask, a: (v.x, v.y), b: (v.x, v.y), r: v.size / 2.0, via: true });
         }
         let mut old = Old { pieces: count, ..Old::default() };
-        if pieces.is_empty() {
-            self.old = old;
-            return;
-        }
         // per net: its pieces, then its pads, joined where they touch
         let mut by_net: HashMap<u16, Vec<usize>> = HashMap::new();
         for (k, p) in pieces.iter().enumerate() {
             by_net.entry(p.net).or_default().push(k);
         }
-        let mut nets: Vec<u16> = by_net.keys().copied().collect();
-        nets.sort();
+        let none: Vec<usize> = Vec::new();
         let (pitch, reach) = (self.f.pitch, self.f.pitch * 0.5 + 1e-9);
-        for net in nets {
-            let ks = &by_net[&net];
+        for net in (1..sc.nets.len() as u16).filter(|&n| sc.nets[n as usize].pads.len() >= 2) {
+            let ks = by_net.get(&net).unwrap_or(&none);
             let pads = &sc.nets[net as usize].pads;
             let n = ks.len();
             let mut up: Vec<usize> = (0..n + pads.len()).collect();
@@ -118,22 +122,35 @@ impl Router {
                     if p.lmask & q.lmask == 0 || bi.0 > bj.2 || bj.0 > bi.2 || bi.1 > bj.3 || bj.1 > bi.3 {
                         continue;
                     }
-                    if p.ends().iter().any(|&e| q.holds(e)) || q.ends().iter().any(|&e| p.holds(e)) {
+                    if p.touches(q) {
                         join(&mut up, i, j);
+                    }
+                }
+            }
+            let pmask = |p: usize| if sc.pads[p].tht { all } else if sc.pads[p].back { 1 << (nl - 1) } else { 1 };
+            let pboxes: Vec<(f64, f64, f64, f64)> = pads.iter().map(|&p| sc.pads[p].shape.bbox()).collect();
+            for pi in 0..pads.len() {
+                for pj in pi + 1..pads.len() {
+                    let (bi, bj) = (pboxes[pi], pboxes[pj]);
+                    if pmask(pads[pi]) & pmask(pads[pj]) == 0 || bi.0 > bj.2 || bj.0 > bi.2 || bi.1 > bj.3 || bj.1 > bi.3 {
+                        continue;
+                    }
+                    if sc.pads[pads[pi]].shape.overlaps(&sc.pads[pads[pj]].shape, TOUCH) {
+                        join(&mut up, n + pi, n + pj);
                     }
                 }
             }
             for (pi, &p) in pads.iter().enumerate() {
                 let pad = &sc.pads[p];
-                let pmask = if pad.tht { all } else if pad.back { 1 << (nl - 1) } else { 1 };
-                let pb = pad.shape.bbox();
+                let pmask = pmask(p);
+                let pb = pboxes[pi];
                 for i in 0..n {
                     let q = &pieces[ks[i]];
                     let bi = boxes[i];
                     if pmask & q.lmask == 0 || bi.0 > pb.2 || pb.0 > bi.2 || bi.1 > pb.3 || pb.1 > bi.3 {
                         continue;
                     }
-                    if q.ends().iter().any(|&e| pad.shape.dist(e.0, e.1) <= 1e-6) || q.holds((pad.x, pad.y)) {
+                    if q.on(&pad.shape) {
                         join(&mut up, i, n + pi);
                     }
                 }
@@ -145,7 +162,7 @@ impl Router {
                 let next = old.isles.len();
                 let k = *isle_of.entry(root).or_insert(next);
                 if k == next {
-                    old.isles.push(Isle { net, pads: Vec::new(), nodes: Vec::new(), layers: 0 });
+                    old.isles.push(Isle { net, pads: Vec::new(), nodes: Vec::new(), layers: 0, copper: true });
                 }
                 let q = &pieces[ks[i]];
                 old.isles[k].layers |= q.lmask;
@@ -188,14 +205,22 @@ impl Router {
                     }
                 }
             }
+            // pads that touch each other with no piece between them are an island too
+            let mut mates: HashMap<usize, usize> = HashMap::new();
+            for pi in 0..pads.len() {
+                *mates.entry(find(&mut up, n + pi)).or_insert(0) += 1;
+            }
             for (pi, &p) in pads.iter().enumerate() {
                 let root = find(&mut up, n + pi);
+                if !isle_of.contains_key(&root) && mates[&root] >= 2 {
+                    isle_of.insert(root, old.isles.len());
+                    old.isles.push(Isle { net, pads: Vec::new(), nodes: Vec::new(), layers: 0, copper: false });
+                    old.pad_isles += 1;
+                }
                 if let Some(&k) = isle_of.get(&root) {
                     old.isles[k].pads.push(p);
                     old.of_pad.insert(p, k);
-                    if sc.pads[p].tht {
-                        old.isles[k].layers = all;
-                    }
+                    old.isles[k].layers |= pmask(p);
                 }
             }
         }

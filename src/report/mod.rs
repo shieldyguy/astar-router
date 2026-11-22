@@ -51,13 +51,18 @@ impl Router {
         }
         // copper the board came with, and what it joins
         if self.old.pieces != (0, 0) {
-            let (pads, nets) = (self.old.of_pad.len(), {
-                let mut n: Vec<u16> = self.old.isles.iter().filter(|i| !i.pads.is_empty()).map(|i| i.net).collect();
+            let (pads, nets) = (self.old.isles.iter().filter(|i| i.copper).map(|i| i.pads.len()).sum::<usize>(), {
+                let mut n: Vec<u16> = self.old.isles.iter().filter(|i| i.copper && !i.pads.is_empty()).map(|i| i.net).collect();
                 n.sort();
                 n.dedup();
                 n.len()
             });
             self.note("kept", 0, None, format!("the board came with {} tracks and {} vias: they stay where they are, {} pads of {} nets stand on them, and new tracks start and end on them", self.old.pieces.0, self.old.pieces.1, pads, nets));
+        }
+        // pads that lie on each other are joined as they are
+        if self.old.pad_isles > 0 {
+            let pads: usize = self.old.isles.iter().filter(|i| !i.copper).map(|i| i.pads.len()).sum();
+            self.note("touching", 0, None, format!("{} pads lie on another pad of their net in {} places: they are joined as they are, and get no track between them", pads, self.old.pad_isles));
         }
         // old copper that no pad stands on and nothing joins to its net: KiCad counts it as not joined
         let mut loose: Vec<(u16, (f64, f64))> = self.jobs.iter().flat_map(|j| j.loose.iter().map(move |&at| (j.net, at))).collect();
