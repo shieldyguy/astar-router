@@ -230,9 +230,10 @@ fn routed(sc: Scene, cfg: &Cfg) -> Result<Routed, Error> {
 
 /// Route a scene: the board passes, the field, the plan passes, the route, the finish. An error is a
 /// scene or settings the router cannot take; nets left open are not an error (`Routed::exit_code`).
-pub fn route(sc: Scene, cfg: &Cfg) -> Result<Routed, Error> {
+pub fn route(mut sc: Scene, cfg: &Cfg) -> Result<Routed, Error> {
     let t0 = Instant::now();
     super::check(&sc, cfg).map_err(Error::BadInput)?;
+    super::ask(&mut sc, cfg);
     let mut out = routed(sc, cfg)?;
     if let Some(open) = out.router.sides {
         let how = format!("the style rules are left out (a pad left by its end, a pour not crossed for nothing): with them {} nets stayed open", open);

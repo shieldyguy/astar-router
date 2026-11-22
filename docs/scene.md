@@ -179,7 +179,10 @@ longest net's); `by`: `length` (default) or `time`.
     {"nets": ["SIG", "AUX"], "parts": ["U1", "R1"]}
 
 Which nets are to be routed and which parts may be touched. Left out, or a key left out: all of them.
-A net out of scope keeps the copper it has and gets none.
+A net out of scope keeps the copper it has and gets none: its pads, its copper and the way out of its
+pins are kept clear of by the nets that are routed, it is not counted as open, and the plan names it
+(`not_asked`), so the check does not ask whether it is whole. `--nets` and `--except` on the command line
+narrow the scope further, by name, with `*` for any run of letters. `parts` is read and not used yet.
 
 ## The validator
 

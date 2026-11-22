@@ -26,6 +26,10 @@ pub struct Cfg {
     pub cross_mul: f64,
     /// nets that are joined off this board: each of their pads gets a via and nothing else (`--drops`)
     pub drops: Vec<String>,
+    /// the nets to route, by name, `*` for any run of letters (`--nets`); empty: every net the scene asks for
+    pub nets: Vec<String>,
+    /// nets to leave as they are (`--except`), over `nets`
+    pub except: Vec<String>,
     /// what crossing another net's copper (which is then lifted and re-routed) costs, in mm of track
     pub rip_mm: f64,
     /// the same for a plane drop looking for its via
@@ -72,6 +76,8 @@ impl Default for Cfg {
             exit_mm: 2.0,
             cross_mul: 2.0,
             drops: Vec::new(),
+            nets: Vec::new(),
+            except: Vec::new(),
             rip_mm: 8.0,
             rip_drop_mm: 3.0,
             fence_mm: 0.35,

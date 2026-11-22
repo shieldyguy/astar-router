@@ -204,6 +204,38 @@ pub(crate) fn grid_offset(sc: &Scene, pitch: f64) -> (f64, f64) {
     (best(&want[0]), best(&want[1]))
 }
 
+/// Whether `name` is what `pattern` asks for: the same letters, with `*` standing for any run of them.
+pub fn like(pattern: &str, name: &str) -> bool {
+    let (p, n): (Vec<char>, Vec<char>) = (pattern.chars().collect(), name.chars().collect());
+    // (star: where the last `*` stood and how much of the name it has taken so far)
+    let (mut i, mut k, mut star): (usize, usize, Option<(usize, usize)>) = (0, 0, None);
+    while k < n.len() {
+        if i < p.len() && p[i] == '*' {
+            star = Some((i, k));
+            i += 1;
+        } else if i < p.len() && p[i] == n[k] {
+            i += 1;
+            k += 1;
+        } else if let Some((si, sk)) = star {
+            star = Some((si, sk + 1));
+            i = si + 1;
+            k = sk + 1;
+        } else {
+            return false;
+        }
+    }
+    p[i..].iter().all(|&c| c == '*')
+}
+
+/// The nets the settings ask for (`--nets`, `--except`), within what the scene asks for itself.
+pub fn ask(sc: &mut Scene, cfg: &Cfg) {
+    for n in sc.nets.iter_mut().skip(1) {
+        if (!cfg.nets.is_empty() && !cfg.nets.iter().any(|p| like(p, &n.name))) || cfg.except.iter().any(|p| like(p, &n.name)) {
+            n.in_scope = false;
+        }
+    }
+}
+
 /// A node's place on the grid is kept in 16 bits.
 pub const MAX_NODES_ACROSS: usize = 65_000;
 
@@ -215,6 +247,13 @@ pub fn check(sc: &Scene, cfg: &Cfg) -> Result<(), String> {
     for name in &cfg.drops {
         if !sc.nets.iter().skip(1).any(|n| n.name == *name) {
             return Err(format!("--drops {}: the board has no net of that name", name));
+        }
+    }
+    for (flag, names) in [("--nets", &cfg.nets), ("--except", &cfg.except)] {
+        for name in names {
+            if !sc.nets.iter().skip(1).any(|n| like(name, &n.name)) {
+                return Err(format!("{} {}: the board has no net of that name", flag, name));
+            }
         }
     }
     let (minx, miny, maxx, maxy) = extent(sc);

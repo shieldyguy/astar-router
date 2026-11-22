@@ -20,7 +20,10 @@ const USAGE: &str = "usage: astar route IN.kicad_pcb -o OUT.kicad_pcb [--plan PL
        astar route SCENE.json PLAN.json [--pitch MM] [--weight W] [--weight-soft W] [--via MM] [--plane-via MM]
              [--turn MM] [--inner X] [--rip MM] [--rip-drop MM] [--fence MM] [--lane MM] [--toll X] [--pour PADS]
              [--one-way] [--rounds N] [--pressure X] [--radius MM] [--seconds S] [--skip PASS] [--strict] [-v]
-             [--cross X] [--drops NET[,NET]]
+             [--cross X] [--drops NET[,NET]] [--nets NET[,NET]] [--except NET[,NET]]
+         --nets NET:  only these nets are routed (* stands for any run of letters: --nets 'SPI_*,CLK');
+         --except NET: these are not. A net not routed gets no copper: its pads, its copper and the way
+                      out of its pins are kept clear of, and it is not counted as open
          --drops NET: the net is joined off this board (a block laid out alone, its ground the host's pour):
                       its pads go down by vias (a pad may share one) and nothing joins the vias here
          exit: 0 every net joined, 1 nets open, 2 the input could not be taken, 3 a rule narrowed (with --strict),
@@ -96,6 +99,17 @@ fn route_command(args: &[String], old_form: bool) -> ! {
                 match args.get(i) {
                     Some(names) if !names.starts_with("--") => cfg.drops.extend(names.split(',').filter(|n| !n.is_empty()).map(str::to_string)),
                     _ => refuse("--drops takes the name of a net (or several, with commas between)"),
+                }
+            }
+            "--nets" | "--except" => {
+                let flag = a.to_string();
+                i += 1;
+                match args.get(i) {
+                    Some(names) if !names.starts_with("--") => {
+                        let into = if flag == "--nets" { &mut cfg.nets } else { &mut cfg.except };
+                        into.extend(names.split(',').filter(|n| !n.is_empty()).map(str::to_string));
+                    }
+                    _ => refuse(&format!("{} takes the names of nets, with commas between (* for any run of letters)", flag)),
                 }
             }
             "--cross" => cfg.cross_mul = val(&mut i),

@@ -27,6 +27,7 @@ pub mod scene;
 pub mod search;
 
 pub use route::{route, Cfg, Routed};
+pub use route::like;
 pub use scene::Scene;
 
 /// Why a scene was not routed at all. What a run could not finish is not an error: it is in its

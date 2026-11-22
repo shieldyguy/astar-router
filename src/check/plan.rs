@@ -45,6 +45,8 @@ pub struct Plan {
     pub planes: Vec<Plane>,
     /// the nets the plan itself says it did not join
     pub left_out: Vec<String>,
+    /// the nets the run was not asked to route (`--nets`, `--except`, the scene's `scope`)
+    pub not_asked: Vec<String>,
 }
 
 fn finite(v: &[f64]) -> bool {
@@ -141,6 +143,7 @@ impl Plan {
             planes.push(Plane { net, layer, outline, holes, host: q.get("host").b() });
         }
         let left_out = j.get("left_out").arr().iter().filter_map(|x| x.get("net").s().map(|s| s.to_string())).collect();
-        Ok(Plan { nets, planes, left_out })
+        let not_asked = j.get("not_asked").arr().iter().filter_map(|x| x.s().map(|s| s.to_string())).collect();
+        Ok(Plan { nets, planes, left_out, not_asked })
     }
 }

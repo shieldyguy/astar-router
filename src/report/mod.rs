@@ -59,6 +59,12 @@ impl Router {
             });
             self.note("kept", 0, None, format!("the board came with {} tracks and {} vias: they stay where they are, {} pads of {} nets stand on them, and new tracks start and end on them", self.old.pieces.0, self.old.pieces.1, pads, nets));
         }
+        // nets that were not asked for
+        let left: Vec<&str> = self.sc.nets.iter().skip(1).filter(|n| n.pads.len() >= 2 && !n.in_scope).map(|n| n.name.as_str()).collect();
+        if !left.is_empty() {
+            let names = if left.len() <= 8 { left.join(", ") } else { format!("{}, and {} more", left[..8].join(", "), left.len() - 8) };
+            self.note("not asked", 0, None, format!("{} nets were not asked for and get no copper ({}): their pads, their copper and the way out of their pins are kept clear of; whether they are joined is not looked at", left.len(), names));
+        }
         // pads that lie on each other are joined as they are
         if self.old.pad_isles > 0 {
             let pads: usize = self.old.isles.iter().filter(|i| !i.copper).map(|i| i.pads.len()).sum();
@@ -84,7 +90,7 @@ impl Router {
         }
         for n in 1..self.sc.nets.len() {
             let net = &self.sc.nets[n];
-            if net.class != crate::scene::Class::Ground || net.pads.len() < 3 || net.plane.is_some() || self.pours.contains_key(&(n as u16)) {
+            if net.class != crate::scene::Class::Ground || net.pads.len() < 3 || !net.in_scope || net.plane.is_some() || self.pours.contains_key(&(n as u16)) {
                 continue;
             }
             let mm: f64 = self.jobs.iter().filter(|j| j.net == n as u16).flat_map(|j| j.tracks.iter()).map(|t| t.pts.windows(2).map(|w| crate::geom::hypot(w[1].0 - w[0].0, w[1].1 - w[0].1)).sum::<f64>()).sum();
@@ -148,7 +154,7 @@ impl Router {
             }
         }
         for (ni, n) in self.sc.nets.iter().enumerate().skip(1) {
-            if n.pads.len() < 2 {
+            if !n.wanted() {
                 continue;
             }
             let missing = if n.plane.is_some() { n.pads.iter().filter(|&&p| !self.pad_in_plane(p) && !self.old_reaches_plane(p) && !self.drop_of.contains_key(&p)).count() } else if has_job[ni] { 0 } else { n.pads.len() - 1 };

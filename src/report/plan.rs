@@ -78,6 +78,9 @@ pub fn plan_json(r: &Router, note: &str, read_s: f64, total_s: f64) -> String {
         }
         let _ = write!(o, "\n  {{\"net\": {}, \"reason\": {}}}", quote(&r.sc.nets[n as usize].name), quote(&format!("{} of {} pads joined", got, all)));
     }
+    // the nets that were not asked for: the check does not ask whether they are whole
+    let left: Vec<String> = r.sc.nets.iter().skip(1).filter(|n| n.pads.len() >= 2 && !n.in_scope).map(|n| quote(&n.name)).collect();
+    let _ = write!(o, "],\n \"not_asked\": [{}", left.join(", "));
     let (mm, vias, pops, searches) = r.totals();
     let passes: Vec<String> = r.clock.lines().iter().map(|(name, s)| format!("{}: {:.4}", quote(name), s)).collect();
     let notes: Vec<String> = r
@@ -123,11 +126,13 @@ pub fn plan_json(r: &Router, note: &str, read_s: f64, total_s: f64) -> String {
 pub fn lines(r: &Router, note: &str, read_s: f64, total_s: f64, verbose: bool) -> Vec<String> {
     let open = r.open_nets();
     let (mm, vias, pops, searches) = r.totals();
-    let nets = r.sc.nets.iter().skip(1).filter(|n| n.pads.len() >= 2).count();
+    let nets = r.sc.nets.iter().skip(1).filter(|n| n.wanted()).count();
+    let left = r.sc.nets.iter().skip(1).filter(|n| n.pads.len() >= 2 && !n.in_scope).count();
     let mut out = vec![format!(
-        "astar: {} of {} nets joined, {:.1} mm, {} vias; {:.3} s (read {:.3}, build {:.3}, route {:.3}{}); {} searches, {} expanded, {} rounds, {} routed again{}",
+        "astar: {} of {} nets joined{}, {:.1} mm, {} vias; {:.3} s (read {:.3}, build {:.3}, route {:.3}{}); {} searches, {} expanded, {} rounds, {} routed again{}",
         nets - open.len(),
         nets,
+        if left > 0 { format!(" ({} not asked for)", left) } else { String::new() },
         mm,
         vias,
         total_s,

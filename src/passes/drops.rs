@@ -18,7 +18,7 @@ pub const DROP: JobKind = JobKind { name: "drop", pass: "drops", route: Router::
 /// pad that reaches the plane (`route::old`).
 fn plan(r: &mut Router) {
     for ni in 1..r.sc.nets.len() {
-        if r.sc.nets[ni].pads.len() < 2 || r.sc.nets[ni].plane.is_none() {
+        if !r.sc.nets[ni].wanted() || r.sc.nets[ni].plane.is_none() {
             continue;
         }
         for k in 0..r.sc.nets[ni].pads.len() {

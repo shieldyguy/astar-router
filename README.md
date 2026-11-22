@@ -156,6 +156,11 @@ every run.
    **The board is the declaration.** What a net's copper should be is read off the board and nowhere
    else: a zone drawn for a net is its pour, a layer given to a net is its plane. A ground with neither
    is wired as any net is, and the plan's notes say so (`ground`).
+   **Some nets only** (`--nets`, `--except`, the scene's `scope`). The nets asked for are routed; the
+   others get no copper and are not counted as open. They are still on the board: their pads and their
+   copper are fixed copper to the nets that are routed, and their fine-pitch pins keep their fences and
+   lanes, so the way out of them is still there for whoever routes them next. The plan names them
+   (`not_asked`).
    **Drops** (`--drops NET`). A block laid out alone has no pour of its own: its ground is the pour of
    the board it will be set into. Such a net's pads go down by vias (a pad may share one, and old copper that reaches a via counts) and nothing else, the vias
    are joined by nothing here (the notes say so, `drops`), no zone is drawn for it, and the layer the

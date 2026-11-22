@@ -642,7 +642,7 @@ pub fn check(sc: &Scene, plan: &Plan, planes: &[(u16, usize)]) -> Report {
     let said: std::collections::HashSet<&str> = plan.left_out.iter().map(|s| s.as_str()).collect();
     let (mut nets, mut joined) = (0, 0);
     for (ni, n) in sc.nets.iter().enumerate().skip(1) {
-        if n.pads.len() < 2 || !n.in_scope {
+        if n.pads.len() < 2 || !n.in_scope || plan.not_asked.iter().any(|s| *s == n.name) {
             continue;
         }
         nets += 1;

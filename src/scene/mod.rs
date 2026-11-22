@@ -148,6 +148,12 @@ pub struct Net {
 }
 
 impl Net {
+    /// Whether the router is to join this net: it has pads to join, and it is asked for (`in_scope`).
+    /// A net not asked for keeps its pads, its copper and its way out of its pins; it gets no copper.
+    pub fn wanted(&self) -> bool {
+        self.pads.len() >= 2 && self.in_scope
+    }
+
     /// A net as scene 1.1 knows one.
     pub fn plain(name: String, class: Class, width: f64, clearance: f64) -> Net {
         Net { name, class, width, clearance, pads: vec![], plane: None, netclass: 0, via: None, drill: None, impedance: None, in_scope: true }
@@ -338,7 +344,6 @@ impl Scene {
         say(self.pairs.len(), "differential pairs");
         say(self.matches.len(), "match groups");
         say(self.groups.len(), "groups of parts");
-        say(self.nets.iter().skip(1).filter(|n| !n.in_scope).count(), "nets out of scope");
         say(self.parts.iter().filter(|p| !p.in_scope).count(), "parts out of scope");
         out
     }

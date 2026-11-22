@@ -33,6 +33,11 @@ asked: `git push origin main:release` builds, tests and publishes `build-<sha12>
   (`board.refill_zones()`, `board.save_as(...)`). `tests/judge.py` is the full judgement against the
   bare board's own DRC.
 - Rules are the board's: set track and clearance in the project's net classes and minimums, not by flags.
+- Some nets only: `--nets 'SPI_*,CLK'` routes those, `--except 'CLK*'` routes all but those (`*` is any
+  run of letters; a scene's `scope.nets` does the same). A net not routed gets no copper, is not counted as
+  open, and the others keep clear of its pads, its copper and the way out of its pins.
+- Copper the board already has is joined as KiCad counts it: whatever copper of a net overlaps is one,
+  pads lying on pads included. Lay the nets you want by hand first; astar builds on them.
 - A block laid out alone whose ground is its host's pour: `--drops GND`.
 
 ## What it does not do yet (an outside review, 2026-11-19)
@@ -46,8 +51,8 @@ Read its notes on stderr: it says what it ignored, but the exit code does not ch
 - **Differential pairs are two plain nets.** No length matching, no impedance.
 - **Custom rules (`.kicad_dru`) are mostly not read**: anything with a condition, and width, via and hole
   rules. Clearance rules without a condition are read.
-- **All or nothing.** It cannot route some nets only (a scene's `scope` is read and not used), lifts
-  nothing, and leaves old copper where a part has since moved.
+- **Nothing is lifted.** It keeps the copper a board has and never moves it, so old copper stays where
+  a part has since moved.
 - **A pour-only keep-out is not seen by a plane astar pours itself.**
 - **Small faults KiCad calls errors**: a track can graze a keep-out's corner by under a micron; a thermal
   relief can be left with one spoke.

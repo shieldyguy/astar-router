@@ -174,6 +174,8 @@ Kinds today, all written at the end of a run by `route::route` (`Router::close_r
 | `narrowed` | a net drawn narrower than it asks where its width did not fit: how many stretches, how long, down to what | exit 3 under `--strict` |
 | `ends` | track ends at pads laid as the grid found them, a step beside the pad's own line, where that line was not clear: how many of how many | nobody yet |
 | `kept` | the tracks and vias the board came with: how many, how many pads of how many nets stand on them | nobody yet |
+| `touching` | pads that lie on another pad of their net, with no track between: how many, in how many places; they are joined as they are | nobody yet |
+| `not asked` | the nets the run was not asked to route (`--nets`, `--except`, the scene's `scope`): how many, the first eight by name | the plan's `not_asked`; the summary line |
 | `loose` | a piece of old copper no pad stands on that could not be joined to the rest of its net, with where | the net counts as open: exit 1 |
 | `ground` | a ground of three pads or more joined by track: the board has no pour and no plane for it | nobody yet |
 | `drops` | a net joined off this board (`--drops`): how many pads go down by how many vias, which nothing joins here | nobody yet |

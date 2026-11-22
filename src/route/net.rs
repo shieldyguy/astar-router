@@ -46,7 +46,7 @@ impl Router {
         }
         let mut nets = Vec::new();
         for (ni, n) in self.sc.nets.iter().enumerate() {
-            if ni == 0 || n.pads.len() < 2 || n.plane.is_some() {
+            if ni == 0 || !n.wanted() || n.plane.is_some() {
                 continue;
             }
             let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
