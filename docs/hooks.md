@@ -170,11 +170,12 @@ Kinds today, all written at the end of a run by `route::route` (`Router::close_r
 
 | kind | what | who reads it |
 |---|---|---|
-| `open` | a net with a pad not joined, at an open pad: `2 of 5 pads joined`, then why, pad by pad: `the board itself leaves no way to U1.2` (what stays round the pad shuts it in: a matter for the placement or the rules) or `no way was found to U1.2 among the other nets` | exit 1; the plan's `left_out`; stdout, always (the first dozen) |
+| `open` | a net with a pad not joined, at an open pad: `2 of 5 pads joined`, then why, pad by pad: `the board itself leaves no way to U1.2: U1.2 is shut in by pad U1.3 (SCK) and a keep-out` (what stays round the pad shuts it in, named: a matter for the placement or the rules) or `no way was found to U1.2 among the other nets: the nearest way runs through NRST at (24.10, 18.30)` (whose copper is in the way, and where) | exit 1; the plan's `left_out`; stdout, always (the first dozen) |
 | `narrowed` | a net drawn narrower than it asks where its width did not fit: how many stretches, how long, down to what | exit 3 under `--strict` |
 | `ends` | track ends at pads laid as the grid found them, a step beside the pad's own line, where that line was not clear: how many of how many | nobody yet |
 | `kept` | the tracks and vias the board came with: how many, how many pads of how many nets stand on them | nobody yet |
 | `touching` | pads that lie on another pad of their net, with no track between: how many, in how many places; they are joined as they are | nobody yet |
+| `layers` | a net kept to layers (`--layers`, the net's `layers`): how much of it runs there, and how much on other layers from its pads to their vias | nobody yet |
 | `not asked` | the nets the run was not asked to route (`--nets`, `--except`, the scene's `scope`): how many, the first eight by name | the plan's `not_asked`; the summary line |
 | `loose` | a piece of old copper no pad stands on that could not be joined to the rest of its net, with where | the net counts as open: exit 1 |
 | `ground` | a ground of three pads or more joined by track: the board has no pour and no plane for it | nobody yet |

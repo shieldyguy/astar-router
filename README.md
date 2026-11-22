@@ -131,7 +131,11 @@ every run.
    keep-outs, fences, copper the board came with) asks the board whether it leaves one at all. Where
    it leaves none, the pad is shut in by the board itself: it is not tried again, in the rounds or
    here, and the run says `the board itself leaves no way to U1.2`, which is a matter for the placement
-   or the rules. Else it says no way was found among the other nets.
+   or the rules, and names what stopped the flood, nearest the pad first (`src/route/wall.rs`): `U1.2
+   is shut in by pad U1.3 (SCK) and a keep-out`. Else it says no way was found among the other nets,
+   and whose copper is in the way: last of all, each net still open is laid once more, free to run
+   through other nets' copper, the nets it runs through are noted with the place, and the board is
+   put back as it was (`Router::blame`): `the nearest way runs through NRST at (24.10, 18.30)`.
 9. **Redrawing** (`src/route/redraw.rs`). How a path is drawn depends on what stood beside it when it
    was laid: a stretch narrowed, an end laid as found, a whole path kept as the search found it because
    it ran through another net's copper (wiggles and all). That is often copper since lifted. So once
@@ -161,7 +165,13 @@ every run.
    copper are fixed copper to the nets that are routed, and their fine-pitch pins keep their fences and
    lanes, so the way out of them is still there for whoever routes them next. The plan names them
    (`not_asked`).
-   **Drops** (`--drops NET`). A block laid out alone has no pour of its own: its ground is the pour of
+   **A net kept to layers** (`--layers 'CLK*=B.Cu'`, a net's `layers` in the scene). Its tracks run on
+   the layers named and nowhere else, in every search and in the redrawing. A pad of it on another
+   layer is left by a stub to a via: off its layers the net may stand only within `--stub` (2.5 mm) of
+   a pad of its own on that layer, and a step there costs three, so the stub is as short as there is
+   room for. A rule that cannot be kept leaves the net open, and the run says the rule is what shuts
+   the pad in. The plan's notes say how much of the net runs where (`layers`).
+ A block laid out alone has no pour of its own: its ground is the pour of
    the board it will be set into. Such a net's pads go down by vias (a pad may share one, and old copper that reaches a via counts) and nothing else, the vias
    are joined by nothing here (the notes say so, `drops`), no zone is drawn for it, and the layer the
    vias go down to stays open to tracks, at the crossing price.

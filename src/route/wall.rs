@@ -16,8 +16,11 @@ impl Router {
         let net = pad.net;
         let t = self.t_low(net);
         let site = |k: usize| self.via_ok.get(k >> 6).map_or(false, |m| m & (1 << (k & 63)) != 0);
-        // where the flood was stopped: (node, layer), nearest the pad first
-        let mut stops: Vec<(f64, usize)> = Vec::new();
+        let keep = self.keeps.get(&net);
+        let off = |n: usize| keep.map_or(false, |k| k.off(n / per, f.wx((n % per) % w), f.wy((n % per) / w)));
+        // where the flood was stopped: (how far from the pad, the node, by the net's own layer rule),
+        // nearest the pad first
+        let mut stops: Vec<(f64, usize, bool)> = Vec::new();
         let mut seen = vec![0u64; per * nl / 64 + 1];
         let mut todo: Vec<usize> = Vec::new();
         for a in &self.acc[p] {
@@ -33,7 +36,7 @@ impl Router {
             // no node to stand on at all: what is nearest the pad itself is what is in its way
             let (x, y) = f.node_near(pad.x, pad.y);
             for l in self.pad_layers(p) {
-                stops.push((0.0, f.idx(l, y, x)));
+                stops.push((0.0, f.idx(l, y, x), false));
             }
         }
         let mut count = 0usize;
@@ -54,18 +57,21 @@ impl Router {
                         continue;
                     }
                     seen[n >> 6] |= 1 << (n & 63);
-                    if sdist(&f.cells[n], net) >= t {
-                        todo.push(n);
+                    let (nx, ny) = ((n % per) % w, (n % per) / w);
+                    let far = crate::geom::hypot(f.wx(nx) - pad.x, f.wy(ny) - pad.y);
+                    if sdist(&f.cells[n], net) < t {
+                        stops.push((far, n, false));
+                    } else if off(n) {
+                        stops.push((far, n, true));
                     } else {
-                        let (nx, ny) = ((n % per) % w, (n % per) / w);
-                        stops.push((crate::geom::hypot(f.wx(nx) - pad.x, f.wy(ny) - pad.y), n));
+                        todo.push(n);
                     }
                 }
             }
             if site(k) {
                 for l2 in (0..nl).filter(|&l2| l2 != l && self.costs.step[l2][0] != 0) {
                     let n = l2 * per + k;
-                    if seen[n >> 6] & (1 << (n & 63)) == 0 {
+                    if seen[n >> 6] & (1 << (n & 63)) == 0 && !off(n) {
                         seen[n >> 6] |= 1 << (n & 63);
                         todo.push(n);
                     }
@@ -74,10 +80,11 @@ impl Router {
         }
         stops.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap().then(a.1.cmp(&b.1)));
         let mut names: Vec<String> = Vec::new();
-        for &(_, n) in &stops {
+        for &(_, n, rule) in &stops {
             let (l, k) = (n / per, n % per);
             let at = (f.wx(k % w), f.wy(k / w));
-            if let Some(name) = self.fixed_at(at, l, net) {
+            let name = if rule { Some(format!("its own layer rule (it is kept to {})", self.kept_to(net))) } else { self.fixed_at(at, l, net) };
+            if let Some(name) = name {
                 if !names.contains(&name) {
                     names.push(name);
                     if names.len() == 4 {
@@ -87,6 +94,12 @@ impl Router {
             }
         }
         names
+    }
+
+    /// The layers a net is kept to, by name.
+    pub(crate) fn kept_to(&self, net: u16) -> String {
+        let keep = self.sc.nets[net as usize].keep;
+        (0..self.sc.layers.len()).filter(|l| keep & (1 << l) != 0).map(|l| self.sc.layers[l].clone()).collect::<Vec<_>>().join(", ")
     }
 
     /// The fixed thing of another net (or of none) nearest a point on a layer, as a person would call it.

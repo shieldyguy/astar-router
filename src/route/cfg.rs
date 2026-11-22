@@ -30,6 +30,10 @@ pub struct Cfg {
     pub nets: Vec<String>,
     /// nets to leave as they are (`--except`), over `nets`
     pub except: Vec<String>,
+    /// nets kept to layers (`--layers 'CLK*=B.Cu'`): a name with `*`, and the layers its tracks may run on
+    pub layers: Vec<(String, Vec<String>)>,
+    /// how far from a pad of its own a net kept to layers may run on another layer, to reach a via
+    pub stub_mm: f64,
     /// what crossing another net's copper (which is then lifted and re-routed) costs, in mm of track
     pub rip_mm: f64,
     /// the same for a plane drop looking for its via
@@ -78,6 +82,8 @@ impl Default for Cfg {
             drops: Vec::new(),
             nets: Vec::new(),
             except: Vec::new(),
+            layers: Vec::new(),
+            stub_mm: 2.5,
             rip_mm: 8.0,
             rip_drop_mm: 3.0,
             fence_mm: 0.35,
