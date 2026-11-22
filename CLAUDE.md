@@ -53,6 +53,8 @@ asked: `git push origin main:release` builds, tests and publishes `build-<sha12>
   on a two-layer board a pour on the side with fewer parts, written to OUT as a zone. The busiest rail
   gets the next free inner layer when the board still routes whole (`--pour 0`: never). Say it yourself
   with `--plane 'GND=In1.Cu,+3V3=In2.Cu'` (inner layer: plane; outer layer: pour; `GND=In1.Cu+B.Cu` both).
+  A plane or pour astar draws meets pads by reliefs (10 mil spokes over a 10 mil gap); a through-hole
+  pin of a plane left with fewer than two spokes gets a short track on the plane's layer.
   `--ground tracks` wires the ground as a net instead. Every pad of a plane net gets a via of its own
   beside it (`--share MM`: what sharing another pad's via costs; 0 shares freely).
 - A block laid out alone whose ground is its host's pour: `--drops GND` (vias only, no pour drawn).

@@ -75,6 +75,8 @@ pub struct Router {
     pub(crate) hole_near: Vec<u64>,
     /// what never changes about each net's pours (`fill`), for the nets that have one
     pub(crate) pours: HashMap<u16, fill::PourBase>,
+    /// what never changes about the fill of each plane a zone draws (`fill`, `Router::relieve`)
+    pub(crate) plane_bases: HashMap<u16, fill::PourBase>,
     /// per pad: the nodes a track may start from: round its centre, or the ends of its fences
     pub(crate) acc: Vec<Vec<Access>>,
     /// the fixed copper as shapes (the exact index)
@@ -636,6 +638,7 @@ impl Router {
             plane_areas: HashMap::new(),
             hole_near: Vec::new(),
             pours: HashMap::new(),
+            plane_bases: HashMap::new(),
             acc: Vec::new(),
             statics,
             via_owner: HashMap::new(),

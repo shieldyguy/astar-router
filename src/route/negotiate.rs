@@ -15,6 +15,7 @@ pub const PASS: Pass = Pass {
 
 fn route(r: &mut Router) {
     r.make_net_jobs();
+    r.make_relief_jobs();
     r.run();
 }
 

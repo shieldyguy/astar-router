@@ -170,8 +170,10 @@ every run.
    drawn: the first free inner layer as its plane, and on a board with no inner layer a pour over the
    whole board on the side with fewer parts, relieved at its pads by 10 mil spokes over a 10 mil gap. The
    board is then routed as if that had been drawn: every ground pad a via down, signals crossing the
-   pour no further than they must. The plan says so (`planned`), and the pour is written to the board
-   as a zone. `--plane 'GND=In1.Cu,+3V3=In2.Cu'` gives any net its layers outright (an inner layer is a
+   pour no further than they must. The plan says so (`planned`), and the plane or pour is written to
+   the board as a zone. A plane meets its net's through-hole pins by the same reliefs (a plane the
+   board draws, by its own zone's): where other nets' pins or vias leave such a pin fewer than two
+   spokes, it gets short tracks of its own on the plane's layer, as a pad in a pour does (9). `--plane 'GND=In1.Cu,+3V3=In2.Cu'` gives any net its layers outright (an inner layer is a
    plane, an outer one gets a pour; `--plane 'GND=In1.Cu+B.Cu'` is both). `--ground tracks` wires the
    ground as any net is, and the notes say so (`ground`).
    On the 29 house and fixture boards whose ground has nothing drawn, the planned pour cut the track by

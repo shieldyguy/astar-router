@@ -26,7 +26,7 @@ pub fn pour_choice(sc: &Scene, cfg: &Cfg) -> Option<(usize, usize)> {
 fn pour(sc: &mut Scene, cfg: &Cfg) -> Vec<(u16, usize)> {
     match pour_choice(sc, cfg) {
         Some((i, layer)) => {
-            sc.nets[i].plane = Some(layer);
+            super::ground::give(sc, i, layer);
             vec![(i as u16, layer)]
         }
         None => Vec::new(),

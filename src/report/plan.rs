@@ -62,10 +62,14 @@ pub fn plan_json(r: &Router, note: &str, read_s: f64, total_s: f64) -> String {
             o.push_str(", ");
         }
         let _ = write!(o, "{{\"net\": {}, \"layer\": {}", quote(&r.sc.nets[n as usize].name), quote(&r.sc.layers[l]));
-        // a pour the router drew on a layer that stays open to tracks: how it is to be filled
+        // (a pour: on a layer that stays open to tracks)
         if r.sc.nets[n as usize].plane != Some(l) {
+            o.push_str(", \"pour\": true");
+        }
+        // how a zone the router drew is to be filled: as `Scene::draw_pour` has it, reliefs at its pads
+        if r.sc.copper.zones.iter().any(|z| z.net == n && z.layer == l) {
             use crate::scene::{POUR_CLEARANCE, POUR_GAP, POUR_MIN_WIDTH, POUR_SPOKE};
-            let _ = write!(o, ", \"pour\": true, \"pads\": \"thermal\", \"clearance\": {}, \"min_width\": {}, \"thermal_gap\": {}, \"spoke_width\": {}", num(POUR_CLEARANCE), num(POUR_MIN_WIDTH), num(POUR_GAP), num(POUR_SPOKE));
+            let _ = write!(o, ", \"pads\": \"thermal\", \"clearance\": {}, \"min_width\": {}, \"thermal_gap\": {}, \"spoke_width\": {}", num(POUR_CLEARANCE), num(POUR_MIN_WIDTH), num(POUR_GAP), num(POUR_SPOKE));
         }
         o.push('}');
     }

@@ -40,13 +40,13 @@ pub fn ground_to_draw(sc: &Scene, cfg: &Cfg) -> Option<usize> {
         .filter(|&i| !has_copper_of_its_own(sc, i))
 }
 
-/// A layer given to a net: an inner layer is its plane, an outer one gets a pour over the whole board.
-fn give(sc: &mut Scene, net: usize, layer: usize) {
+/// A layer given to a net: an inner layer is its plane, an outer one gets a pour. Either is drawn over
+/// the whole board as a zone that meets the net's pads by reliefs (`Scene::draw_pour`).
+pub fn give(sc: &mut Scene, net: usize, layer: usize) {
     if layer > 0 && layer + 1 < sc.layers.len() {
         sc.nets[net].plane = Some(layer);
-    } else {
-        sc.draw_pour(net, layer);
     }
+    sc.draw_pour(net, layer);
 }
 
 /// What the run says outright (`--plane`), then the ground. Returns what was given, as (net, layer).

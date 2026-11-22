@@ -1,0 +1,346 @@
+{
+ "version": 2,
+ "units": "mm",
+ "source": {
+  "name": "plane_relief"
+ },
+ "stack": {
+  "copper": [
+   "F.Cu",
+   "In1.Cu",
+   "In2.Cu",
+   "B.Cu"
+  ],
+  "planes": [
+   {
+    "net": "GND",
+    "layer": "In1.Cu"
+   }
+  ]
+ },
+ "outline": [
+  {
+   "line": [
+    0,
+    0,
+    20,
+    0
+   ]
+  },
+  {
+   "line": [
+    20,
+    0,
+    20,
+    12
+   ]
+  },
+  {
+   "line": [
+    20,
+    12,
+    0,
+    12
+   ]
+  },
+  {
+   "line": [
+    0,
+    12,
+    0,
+    0
+   ]
+  }
+ ],
+ "rules": {
+  "track": 0.2,
+  "clearance": 0.15,
+  "via": 0.6,
+  "drill": 0.3,
+  "edge": 0.3,
+  "hole_clearance": 0.25,
+  "hole_to_hole": 0.25
+ },
+ "classes": [
+  {
+   "name": "Default",
+   "track": 0.2,
+   "clearance": 0.15,
+   "via": 0.6,
+   "drill": 0.3
+  }
+ ],
+ "nets": [
+  {
+   "name": "GND",
+   "role": "ground"
+  },
+  {
+   "name": "A",
+   "role": "signal"
+  },
+  {
+   "name": "B",
+   "role": "signal"
+  },
+  {
+   "name": "C",
+   "role": "signal"
+  }
+ ],
+ "pads": [
+  {
+   "ref": "J1",
+   "num": "2",
+   "net": "GND",
+   "at": [
+    10,
+    6
+   ],
+   "fp": [
+    10,
+    6
+   ],
+   "size": [
+    1.7,
+    1.7
+   ],
+   "tht": true,
+   "drill": 1.0,
+   "spoke_angle": 45,
+   "shape": {
+    "circle": [
+     10,
+     6,
+     0.85
+    ]
+   }
+  },
+  {
+   "ref": "J2",
+   "num": "1",
+   "net": "GND",
+   "at": [
+    3,
+    3
+   ],
+   "fp": [
+    3,
+    3
+   ],
+   "size": [
+    1.7,
+    1.7
+   ],
+   "tht": true,
+   "drill": 1.0,
+   "spoke_angle": 45,
+   "shape": {
+    "circle": [
+     3,
+     3,
+     0.85
+    ]
+   }
+  },
+  {
+   "ref": "J1",
+   "num": "1",
+   "net": "A",
+   "at": [
+    8.58,
+    4.58
+   ],
+   "fp": [
+    8.58,
+    4.58
+   ],
+   "size": [
+    1.7,
+    1.7
+   ],
+   "tht": true,
+   "drill": 1.0,
+   "spoke_angle": 45,
+   "shape": {
+    "circle": [
+     8.58,
+     4.58,
+     0.85
+    ]
+   }
+  },
+  {
+   "ref": "J1",
+   "num": "3",
+   "net": "B",
+   "at": [
+    11.42,
+    4.58
+   ],
+   "fp": [
+    11.42,
+    4.58
+   ],
+   "size": [
+    1.7,
+    1.7
+   ],
+   "tht": true,
+   "drill": 1.0,
+   "spoke_angle": 45,
+   "shape": {
+    "circle": [
+     11.42,
+     4.58,
+     0.85
+    ]
+   }
+  },
+  {
+   "ref": "J1",
+   "num": "4",
+   "net": "C",
+   "at": [
+    8.58,
+    7.42
+   ],
+   "fp": [
+    8.58,
+    7.42
+   ],
+   "size": [
+    1.7,
+    1.7
+   ],
+   "tht": true,
+   "drill": 1.0,
+   "spoke_angle": 45,
+   "shape": {
+    "circle": [
+     8.58,
+     7.42,
+     0.85
+    ]
+   }
+  },
+  {
+   "ref": "J3",
+   "num": "1",
+   "net": "A",
+   "at": [
+    3,
+    9
+   ],
+   "fp": [
+    3,
+    9
+   ],
+   "size": [
+    1.7,
+    1.7
+   ],
+   "tht": true,
+   "drill": 1.0,
+   "spoke_angle": 45,
+   "shape": {
+    "circle": [
+     3,
+     9,
+     0.85
+    ]
+   }
+  },
+  {
+   "ref": "J3",
+   "num": "2",
+   "net": "B",
+   "at": [
+    16,
+    9
+   ],
+   "fp": [
+    16,
+    9
+   ],
+   "size": [
+    1.7,
+    1.7
+   ],
+   "tht": true,
+   "drill": 1.0,
+   "spoke_angle": 45,
+   "shape": {
+    "circle": [
+     16,
+     9,
+     0.85
+    ]
+   }
+  },
+  {
+   "ref": "J3",
+   "num": "3",
+   "net": "C",
+   "at": [
+    16,
+    2
+   ],
+   "fp": [
+    16,
+    2
+   ],
+   "size": [
+    1.7,
+    1.7
+   ],
+   "tht": true,
+   "drill": 1.0,
+   "spoke_angle": 45,
+   "shape": {
+    "circle": [
+     16,
+     2,
+     0.85
+    ]
+   }
+  }
+ ],
+ "copper": {
+  "tracks": [],
+  "vias": [],
+  "zones": [
+   {
+    "net": "GND",
+    "layer": "In1.Cu",
+    "outline": [
+     [
+      0,
+      0
+     ],
+     [
+      20,
+      0
+     ],
+     [
+      20,
+      12
+     ],
+     [
+      0,
+      12
+     ]
+    ],
+    "holes": [],
+    "priority": 0,
+    "clearance": 0.2,
+    "min_width": 0.2,
+    "pads": "thermal",
+    "thermal_gap": 0.254,
+    "spoke_width": 0.254,
+    "locked": false,
+    "fill": []
+   }
+  ]
+ }
+}

@@ -159,3 +159,33 @@ fn the_drops_of_a_hosted_net_are_legal() {
     std::fs::remove_dir_all(&dir).ok();
     assert_eq!(checked.status.code(), Some(0), "{}{}", String::from_utf8_lossy(&checked.stdout), String::from_utf8_lossy(&checked.stderr));
 }
+
+/// A plane meets its net's through-hole pins by reliefs, and KiCad wants two spokes of a relief to
+/// reach the fill. J1.2 is a ground pin whose spokes three neighbours' pins cut (KiCad: one left, a
+/// starved relief). It gets short tracks of its own on the plane's layer, each a different way, which
+/// KiCad counts as spokes; a pin with room all round gets none.
+#[test]
+fn a_plane_pin_with_too_few_spokes_gets_tracks_of_its_own_on_the_plane_layer() {
+    let p = plan("plane_relief.json", &Cfg::default());
+    let stubs: Vec<Vec<f64>> = p.get("nets").arr().iter().filter(|n| n.get("name").s() == Some("GND")).flat_map(|n| n.get("tracks").arr().to_vec()).filter(|t| t.get("layer").s() == Some("In1.Cu")).map(|t| t.get("path").arr()[0].get("line").arr().iter().map(|v| v.f().unwrap()).collect()).collect();
+    assert_eq!(stubs.len(), 2, "{:?}", stubs);
+    let way = |s: &Vec<f64>| {
+        let (dx, dy) = (s[2] - s[0], s[3] - s[1]);
+        let l = (dx * dx + dy * dy).sqrt();
+        (dx / l, dy / l)
+    };
+    for s in &stubs {
+        assert_eq!((s[0], s[1]), (10.0, 6.0), "from the pin's middle");
+    }
+    let (a, b) = (way(&stubs[0]), way(&stubs[1]));
+    assert!(a.0 * b.0 + a.1 * b.1 < 0.7, "two ways, not one track twice: {:?}", stubs);
+    // without the neighbours the relief has its four spokes and nothing is laid
+    let text = std::fs::read_to_string(format!("{}/tests/scenes/plane_relief.json", env!("CARGO_MANIFEST_DIR"))).unwrap();
+    let mut j = astar::json::parse(&text).unwrap();
+    let J::Obj(top) = &mut j else { panic!() };
+    let J::Arr(pads) = &mut top.iter_mut().find(|(k, _)| k == "pads").unwrap().1 else { panic!() };
+    pads.retain(|q| q.get("net").s() == Some("GND"));
+    let routed = route(Scene::from_json(&j).unwrap(), &Cfg::default()).unwrap();
+    let free = astar::json::parse(&routed.plan()).unwrap();
+    assert!(free.get("nets").arr().iter().all(|n| n.get("tracks").arr().iter().all(|t| t.get("layer").s() != Some("In1.Cu"))));
+}

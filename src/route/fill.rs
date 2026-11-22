@@ -12,6 +12,9 @@ use crate::geom::{hypot, Shape};
 use crate::scene::{Zone, ZonePads};
 use std::collections::HashMap;
 
+/// The job that holds a plane net's relief tracks (`Router::make_relief_jobs`).
+pub const RELIEF: super::JobKind = super::JobKind { name: "relief", pass: "route", route: Router::route_relief };
+
 /// kept beyond every distance the fill needs, mm: the model errs toward no copper
 const EPS: f64 = 0.03;
 
@@ -181,9 +184,25 @@ impl Router {
         self.sc.copper.zones.iter().filter(|z| z.net == net && z.outline.len() >= 3 && !(z.locked && z.min_width == Some(0.0)) && self.routable.contains(&z.layer)).collect()
     }
 
+    /// The zone that draws a net's plane: on the plane's own layer, which is closed to tracks. What it
+    /// joins by is the drops' business; how it meets the net's through-hole pads (a relief's spokes, and
+    /// whether other nets' vias have left enough of them) is modelled like a pour's (`relieve`).
+    fn plane_zones(&self, net: u16) -> Vec<&Zone> {
+        let Some(pl) = self.sc.nets[net as usize].plane else { return Vec::new() };
+        self.sc.copper.zones.iter().filter(|z| z.net == net && z.layer == pl && z.outline.len() >= 3 && !(z.locked && z.min_width == Some(0.0))).collect()
+    }
+
     /// What never changes about a net's pours; None for a net without one.
     pub(crate) fn pour_base(&self, net: u16) -> Option<PourBase> {
-        let zones = self.pour_zones(net);
+        self.base_of(net, self.pour_zones(net))
+    }
+
+    /// What never changes about the fill of a net's plane; None for a net with no plane a zone draws.
+    pub(crate) fn plane_base(&self, net: u16) -> Option<PourBase> {
+        self.base_of(net, self.plane_zones(net))
+    }
+
+    fn base_of(&self, net: u16, zones: Vec<&Zone>) -> Option<PourBase> {
         if zones.is_empty() || net == 0 {
             return None;
         }
@@ -302,7 +321,15 @@ impl Router {
 
     /// A net's pours as KiCad would fill them round the copper that stands now; None for a net without one.
     pub(crate) fn pour(&self, net: u16) -> Option<Pour> {
-        let base = self.pours.get(&net)?;
+        self.pours.get(&net).map(|base| self.filled(base, net))
+    }
+
+    /// A net's plane as KiCad would fill it round the vias that stand now; None for a net without one.
+    pub(crate) fn plane_fill(&self, net: u16) -> Option<Pour> {
+        self.plane_bases.get(&net).map(|base| self.filled(base, net))
+    }
+
+    fn filled(&self, base: &PourBase, net: u16) -> Pour {
         let f = &self.f;
         let (w, h, per) = (f.w, f.h, f.w * f.h);
         let mut open = base.open.clone();
@@ -448,7 +475,7 @@ impl Router {
         }
         let pad_group: Vec<u32> = (0..n as u32).map(|i| find(&mut up, i)).collect();
         let comp_group: Vec<u32> = (0..cells.len() as u32).map(|c| find(&mut up, n as u32 + c)).collect();
-        Some(Pour { comp, cells, comp_group, pad_group, reliefs, joined })
+        Pour { comp, cells, comp_group, pad_group, reliefs, joined }
     }
 
     /// Does job j stand on fill that is no longer there: pads it took as joined by the pour that the pour
@@ -495,14 +522,17 @@ impl Router {
         if min < 2 {
             return 0;
         }
-        let mut nets: Vec<u16> = self.pours.keys().copied().collect();
+        let mut nets: Vec<(u16, bool)> = self.pours.keys().map(|&n| (n, false)).chain(self.plane_bases.keys().map(|&n| (n, true))).collect();
         nets.sort();
         let (w, per) = (self.f.w, self.f.w * self.f.h);
-        for net in nets {
-            let Some(j) = (0..self.jobs.len()).find(|&j| self.jobs[j].net == net && !self.jobs[j].pour_pads.is_empty() && !self.jobs[j].locked) else { continue };
-            let Some(pm) = self.pour(net) else { continue };
+        for (net, plane) in nets {
+            // the job the tracks go to: the net's own job for a pour; for a plane, which has none, the
+            // job that holds its reliefs (`RELIEF`)
+            let found = if plane { (0..self.jobs.len()).find(|&j| self.jobs[j].net == net && self.jobs[j].kind.name == RELIEF.name) } else { (0..self.jobs.len()).find(|&j| self.jobs[j].net == net && !self.jobs[j].pour_pads.is_empty() && !self.jobs[j].locked) };
+            let Some(j) = found else { continue };
+            let Some(pm) = (if plane { self.plane_fill(net) } else { self.pour(net) }) else { continue };
             let pads: Vec<usize> = self.sc.nets[net as usize].pads.clone();
-            // what each piece of fill joins: pads, and ends of the net's tracks
+            // what each piece of fill joins: pads, ends of the net's tracks, and in a plane the net's vias
             let mut things = vec![0u32; pm.cells.len()];
             let mut seen = pm.joined.clone();
             seen.sort();
@@ -519,6 +549,17 @@ impl Router {
                     things[piece_at(t.layer as usize, p)] += 1;
                 }
             }
+            if let (true, Some(pl)) = (plane, self.sc.nets[net as usize].plane) {
+                for &(x, y) in &self.net_vias[net as usize] {
+                    // (a via stands in its own antipad-free hole in the fill: the piece round it)
+                    let k = pl * per + y as usize * w + x as usize;
+                    let c = [k, k + 1, k - 1, k + w, k - w].iter().map(|&q| pm.comp[q]).find(|&c| c != 0).unwrap_or(0);
+                    things[c as usize] += 1;
+                }
+                for v in self.sc.copper.vias.iter().filter(|v| v.net == net) {
+                    things[piece_at(pl, (v.x, v.y))] += 1;
+                }
+            }
             let half = self.w_min(net) / 2.0;
             let mut stubs: Vec<(usize, (f64, f64), (f64, f64))> = Vec::new();
             for (i, l, g, lands) in &pm.reliefs {
@@ -530,7 +571,9 @@ impl Router {
                 // a track of the net that leaves the pad counts as a spoke when its far end lies over this
                 // layer's fill, whatever layer the track is on (so KiCad counts them)
                 let (mut manual, mut leaves) = (0, false);
-                for t in self.jobs[j].tracks.iter().filter(|t| pad.tht || t.layer as usize == l) {
+                // (which way each such track leaves: one more is laid another way, never on top of one)
+                let mut ways: Vec<(f64, f64)> = Vec::new();
+                for t in self.jobs.iter().filter(|o| o.net == net).flat_map(|o| o.tracks.iter()).filter(|t| pad.tht || t.layer as usize == l) {
                     for s in t.pts.windows(2) {
                         let far = if pad.shape.dist(s[0].0, s[0].1) <= g / 2.0 {
                             s[1]
@@ -541,6 +584,8 @@ impl Router {
                         };
                         leaves = true;
                         manual += (piece_at(l, far) != 0) as usize;
+                        let d = hypot(far.0 - pad.x, far.1 - pad.y).max(1e-9);
+                        ways.push(((far.0 - pad.x) / d, (far.1 - pad.y) / d));
                     }
                 }
                 // enough for sure; or spokes into fill that joins nothing else and no track that might be
@@ -570,8 +615,12 @@ impl Router {
                         if ![k - 1, k + 1, k - w, k + w].iter().all(|&q| pm.comp[q] == c) {
                             continue;
                         }
+                        let len = hypot(e.0 - pad.x, e.1 - pad.y).max(1e-9);
+                        if ways.iter().any(|u| (u.0 * (e.0 - pad.x) + u.1 * (e.1 - pad.y)) / len > 0.7) {
+                            continue;
+                        }
                         // into the fill its spokes land in if there is a way, else into any
-                        let d = hypot(e.0 - pad.x, e.1 - pad.y) + if lands.contains(&c) { 0.0 } else { 100.0 };
+                        let d = len + if lands.contains(&c) { 0.0 } else { 100.0 };
                         if best.map_or(true, |(bd, _)| d < bd) && self.piece_clear((pad.x, pad.y), e, half, net, l) {
                             best = Some((d, e));
                         }
@@ -593,6 +642,24 @@ impl Router {
             }
         }
         laid
+    }
+
+    /// One job a net whose plane a zone draws with reliefs: it routes nothing, and holds the short tracks
+    /// that `relieve` gives the net's starved reliefs on the plane's layer.
+    pub(crate) fn make_relief_jobs(&mut self) {
+        for ni in 1..self.sc.nets.len() {
+            if self.sc.nets[ni].pads.len() >= 2 && self.sc.nets[ni].in_scope && self.sc.nets[ni].plane.is_some() {
+                if let Some(b) = self.plane_base(ni as u16) {
+                    self.plane_bases.insert(ni as u16, b);
+                    let j = self.add_job(super::Job::new(RELIEF, ni as u16, None));
+                    self.jobs[j].done = true;
+                }
+            }
+        }
+    }
+
+    fn route_relief(&mut self, j: usize) {
+        self.jobs[j].done = true;
     }
 
     /// (for looking at the model) Every net's pours as the model has them, one grey image a net and layer:
