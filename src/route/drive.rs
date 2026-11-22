@@ -210,11 +210,14 @@ impl Routed {
     }
 }
 
-/// The board through the board passes, the plan passes and the route: both ways when a board pass
-/// changed it.
+/// The board through the passes that draw on it, the board passes, the plan passes and the route.
+///
+/// What a `Draw` pass draws (the ground's copper, the planes the run names) is the board from there on.
+/// What a `Try` pass lays (a pair, side by side, before anything else) is copper nothing moves, and may
+/// be in a neighbour's way: a board that stays open with it is routed once more without, and that board
+/// is kept when fewer of its nets are open; the plan then says the pair was routed as two nets.
 fn routed(sc: Scene, cfg: &Cfg) -> Result<Routed, Error> {
-    // what is drawn for the board (the ground's copper, the planes the run names) is the board from here
-    // on; a drawing the router cannot take (`check`) is left out, and the board routed as it came
+    // a drawing the router cannot take (`check`) is left out, and the board routed as it came
     let (mut sc, mut drawn) = (sc, Vec::new());
     for (i, p) in PASSES.iter().enumerate() {
         if let (Step::Draw(f), true) = (p.step, on(cfg, i)) {
@@ -226,6 +229,69 @@ fn routed(sc: Scene, cfg: &Cfg) -> Result<Routed, Error> {
             }
         }
     }
+    let mut tried = sc.clone();
+    for (i, p) in PASSES.iter().enumerate() {
+        if let (Step::Try(f), true) = (p.step, on(cfg, i)) {
+            let mut next = tried.clone();
+            f(&mut next, cfg);
+            if super::check(&next, cfg).is_ok() {
+                tried = next;
+            }
+        }
+    }
+    if tried.copper.tracks.len() == sc.copper.tracks.len() {
+        // (nothing was laid: what the passes said of that is all that is kept of them)
+        sc.said = tried.said;
+        return both_or_one(sc, drawn, cfg);
+    }
+    let t = Instant::now();
+    let with = both_or_one(tried.clone(), drawn.clone(), cfg)?;
+    let open = with.open_nets().len();
+    // a pad that could be joined to the copper laid for its net only the long way round (the laid copper
+    // came out on the wrong side of something): the track it took, and what the straight way would be
+    let mut round: Option<(f64, f64)> = None;
+    for net in 1..tried.nets.len() {
+        let ends: Vec<(f64, f64)> = tried
+            .copper
+            .tracks
+            .iter()
+            .filter(|t| t.laid && t.net as usize == net)
+            .flat_map(|t| match (t.path.first(), t.path.last()) {
+                (Some(crate::scene::PathPiece::Line(a)), Some(crate::scene::PathPiece::Line(b))) => vec![(a[0], a[1]), (b[2], b[3])],
+                _ => Vec::new(),
+            })
+            .collect();
+        if ends.is_empty() {
+            continue;
+        }
+        let straight: f64 = tried.nets[net].pads.iter().map(|&q| ends.iter().map(|e| crate::geom::hypot(tried.pads[q].x - e.0, tried.pads[q].y - e.1)).fold(f64::MAX, f64::min)).sum();
+        let took: f64 = with.router.jobs.iter().filter(|j| j.net as usize == net).flat_map(|j| j.tracks.iter()).map(|t| t.length()).sum();
+        if took > 2.0 * straight + 2.0 && round.map_or(true, |r| took - straight > r.0 - r.1) {
+            round = Some((took, straight));
+        }
+    }
+    if (open == 0 && round.is_none()) || with.router.abandoned || with.router.out_of_time() {
+        return Ok(with);
+    }
+    let mut free = cfg.clone();
+    if cfg.budget_s > 0.0 {
+        free.budget_s = (cfg.budget_s - t.elapsed().as_secs_f64()).max(0.01);
+    }
+    let why = match round {
+        Some((took, straight)) if open == 0 => format!("its pads could be joined to it only the long way round ({:.1} mm of track where {:.1} mm is the straight way)", took, straight),
+        _ => format!("it left {} nets open that are joined without it", open),
+    };
+    for (net, kind, text) in &tried.said {
+        let text = if text.starts_with("laid ") { format!("routed as two nets: laid side by side first, {}", why) } else { text.clone() };
+        sc.said.push((*net, *kind, text));
+    }
+    let without = both_or_one(sc, drawn, &free)?;
+    Ok(if without.open_nets().len() < open || (round.is_some() && without.open_nets().len() <= open) { without } else { with })
+}
+
+/// The board through the board passes, the plan passes and the route: both ways when a board pass
+/// changed it.
+fn both_or_one(sc: Scene, drawn: Vec<(u16, usize)>, cfg: &Cfg) -> Result<Routed, Error> {
     let mut changed = sc.clone();
     let mut poured = drawn.clone();
     for (i, p) in PASSES.iter().enumerate() {

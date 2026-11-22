@@ -258,8 +258,12 @@ impl Router {
                 }
             }
         };
-        match (&pour, big, in_fill) {
-            (Some(_), Some(grp), None) if size.contains_key(&grp) => take(Come::Fill(grp), self, &mut g),
+        // (copper a pass laid for the net before the route, a pair's run: the tree starts there, so each
+        // pad goes to the end of it that is nearest and none is first wired to another past it)
+        let laid = (0..self.old.isles.len()).find(|&k| self.old.isles[k].net == net && self.old.isles[k].laid);
+        match (&pour, big, in_fill, laid) {
+            (Some(_), Some(grp), None, _) if size.contains_key(&grp) => take(Come::Fill(grp), self, &mut g),
+            (None, _, _, Some(k)) => take(Come::Isle(k), self, &mut g),
             _ => take(Come::Pad(seed), self, &mut g),
         }
         // the pads the board itself leaves no way to (`Job::walled`): one with no node to stand on, and

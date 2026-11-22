@@ -25,6 +25,8 @@ pub(crate) struct Isle {
     pub layers: u32,
     /// whether it has copper of its own: false for pads that lie on each other with no track between
     pub copper: bool,
+    /// whether a pass of this run laid it before the route (`passes::pairs`): the net's tree starts in it
+    pub laid: bool,
 }
 
 #[derive(Default)]
@@ -51,6 +53,9 @@ struct Piece {
     b: (f64, f64),
     r: f64,
     via: bool,
+    /// a track a pass of this run laid first is gone on from at its two ends only (these points): what
+    /// joins it leaves no stub of it hanging, and a pair is not teed into along its run
+    only: Option<[(f64, f64); 2]>,
 }
 
 /// How much two pieces of copper must overlap to be one: KiCad's unit of length, a nanometre.
@@ -87,20 +92,25 @@ impl Router {
         let mut count = (0, 0);
         for t in sc.copper.tracks.iter().filter(|t| t.net != 0 && sc.nets[t.net as usize].pads.len() >= 2) {
             count.0 += 1;
+            let ends = |p: &PathPiece, last: bool| match p {
+                PathPiece::Line(v) => if last { (v[2], v[3]) } else { (v[0], v[1]) },
+                PathPiece::Arc(v) => if last { (v[4], v[5]) } else { (v[0], v[1]) },
+            };
+            let only = if t.laid && !t.path.is_empty() { Some([ends(&t.path[0], false), ends(&t.path[t.path.len() - 1], true)]) } else { None };
             for piece in &t.path {
                 let pts: Vec<(f64, f64)> = match piece {
                     PathPiece::Line(v) => vec![(v[0], v[1]), (v[2], v[3])],
                     PathPiece::Arc(v) => arc_points((v[0], v[1]), (v[2], v[3]), (v[4], v[5]), 0.005),
                 };
                 for w in pts.windows(2) {
-                    pieces.push(Piece { net: t.net, lmask: 1 << t.layer, a: w[0], b: w[1], r: t.width / 2.0, via: false });
+                    pieces.push(Piece { net: t.net, lmask: 1 << t.layer, a: w[0], b: w[1], r: t.width / 2.0, via: false, only });
                 }
             }
         }
         for v in sc.copper.vias.iter().filter(|v| v.net != 0 && sc.nets[v.net as usize].pads.len() >= 2) {
             count.1 += 1;
             let lmask = v.span.map_or(all, |(a, z)| (a.min(z)..=a.max(z)).fold(0u32, |m, l| m | (1 << l)));
-            pieces.push(Piece { net: v.net, lmask, a: (v.x, v.y), b: (v.x, v.y), r: v.size / 2.0, via: true });
+            pieces.push(Piece { net: v.net, lmask, a: (v.x, v.y), b: (v.x, v.y), r: v.size / 2.0, via: true, only: None });
         }
         let mut old = Old { pieces: count, ..Old::default() };
         // per net: its pieces, then its pads, joined where they touch
@@ -169,10 +179,11 @@ impl Router {
                 let next = old.isles.len();
                 let k = *isle_of.entry(root).or_insert(next);
                 if k == next {
-                    old.isles.push(Isle { net, pads: Vec::new(), nodes: Vec::new(), layers: 0, copper: true });
+                    old.isles.push(Isle { net, pads: Vec::new(), nodes: Vec::new(), layers: 0, copper: true, laid: false });
                 }
                 let q = &pieces[ks[i]];
                 old.isles[k].layers |= q.lmask;
+                old.isles[k].laid |= q.only.is_some();
                 // the nodes on it: along a track's middle line, the node nearest each point of it that lies
                 // within half a pitch of the line; a via's nearest node, on each layer it has
                 let t = self.t_min(net);
@@ -181,6 +192,9 @@ impl Router {
                 for s in 0..=steps {
                     let u = if steps == 0 { 0.0 } else { s as f64 / steps as f64 };
                     let at = (q.a.0 + (q.b.0 - q.a.0) * u, q.a.1 + (q.b.1 - q.a.1) * u);
+                    if q.only.map_or(false, |e| e.iter().all(|e| hypot(at.0 - e.0, at.1 - e.1) > pitch * 0.75)) {
+                        continue;
+                    }
                     let (x, y) = self.f.node_near(at.0, at.1);
                     let (wx, wy) = (self.f.wx(x), self.f.wy(y));
                     // the point of the piece's middle line nearest the node
@@ -221,7 +235,7 @@ impl Router {
                 let root = find(&mut up, n + pi);
                 if !isle_of.contains_key(&root) && mates[&root] >= 2 {
                     isle_of.insert(root, old.isles.len());
-                    old.isles.push(Isle { net, pads: Vec::new(), nodes: Vec::new(), layers: 0, copper: false });
+                    old.isles.push(Isle { net, pads: Vec::new(), nodes: Vec::new(), layers: 0, copper: false, laid: false });
                     old.pad_isles += 1;
                 }
                 if let Some(&k) = isle_of.get(&root) {

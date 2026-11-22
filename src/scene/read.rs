@@ -220,6 +220,7 @@ impl Scene {
             pairs: Vec::new(),
             matches: Vec::new(),
             groups: Vec::new(),
+            said: Vec::new(),
         })
     }
 }

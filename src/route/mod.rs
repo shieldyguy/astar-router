@@ -15,7 +15,7 @@ mod net;
 mod old;
 mod probe;
 mod redraw;
-mod solve;
+pub(crate) mod solve;
 mod wall;
 
 pub use access::Access;

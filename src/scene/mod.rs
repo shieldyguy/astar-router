@@ -200,6 +200,9 @@ pub struct OldTrack {
     pub width: f64,
     pub path: Vec<PathPiece>,
     pub locked: bool,
+    /// laid by a pass of this run before the route (`passes::pairs`), not by the board: it is on the
+    /// board to the route like copper it came with, and is written to the plan with the rest
+    pub laid: bool,
 }
 
 /// (scene 2) A via already on the board. `span`: its first and last copper layer when it is not through.
@@ -319,6 +322,8 @@ pub struct Scene {
     pub pairs: Vec<Pair>,
     pub matches: Vec<MatchGroup>,
     pub groups: Vec<Group>,
+    /// what a pass that changed the board before the route has to say: (net, kind, text), for the notes
+    pub said: Vec<(u16, &'static str, String)>,
 }
 
 /// A pour the router draws itself (`Scene::draw_pour`): what it keeps from other nets, its least width,

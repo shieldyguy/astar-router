@@ -387,7 +387,7 @@ impl Scene {
             for (i, t) in c.arr("tracks")?.iter().enumerate() {
                 let at = format!("copper.tracks[{}]", i);
                 let o = O::new(t, at.clone(), &["net", "layer", "width", "path", "locked"])?;
-                copper.tracks.push(OldTrack { net: names.net(o.s_opt("net")?.unwrap_or(""), &at)?, layer: names.layer(o.s("layer")?, &at)?, width: o.f("width")?, path: path(o.arr("path")?, &at)?, locked: o.b("locked")? });
+                copper.tracks.push(OldTrack { net: names.net(o.s_opt("net")?.unwrap_or(""), &at)?, layer: names.layer(o.s("layer")?, &at)?, width: o.f("width")?, path: path(o.arr("path")?, &at)?, locked: o.b("locked")?, laid: false });
             }
             for (i, v) in c.arr("vias")?.iter().enumerate() {
                 let at = format!("copper.vias[{}]", i);
@@ -510,6 +510,6 @@ impl Scene {
         }
 
         let existing_copper = copper.tracks.len() + copper.vias.len() + copper.zones.len();
-        Ok(Scene { version: 2, layers, rules, nets, pads, holes, outline, keepouts, existing_copper, stackup, classes, class_pairs, copper, parts, pairs, matches, groups })
+        Ok(Scene { version: 2, layers, rules, nets, pads, holes, outline, keepouts, existing_copper, stackup, classes, class_pairs, copper, parts, pairs, matches, groups, said: Vec::new() })
     }
 }

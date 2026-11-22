@@ -66,7 +66,13 @@ impl Router {
         if let (true, Some((size, drill))) = (small > 0, self.via_small) {
             self.note("small via", 0, None, format!("{} of {} vias are {} mm on a {} mm hole, the least the board allows, where the {} mm via did not fit", small, all, crate::json::num(size), crate::json::num(drill), crate::json::num(self.sc.rules.via)));
         }
-        // copper the board came with, and what it joins
+        // what the passes that changed the board before the route have to say
+        for (net, kind, text) in self.sc.said.clone() {
+            self.note(kind, net, None, text);
+        }
+        // copper the board came with, and what it joins (less what a pass of this run laid first)
+        let ours = self.sc.copper.tracks.iter().filter(|t| t.laid && self.sc.nets[t.net as usize].pads.len() >= 2).count();
+        self.old.pieces.0 -= ours.min(self.old.pieces.0);
         if self.old.pieces != (0, 0) {
             let (pads, nets) = (self.old.isles.iter().filter(|i| i.copper).map(|i| i.pads.len()).sum::<usize>(), {
                 let mut n: Vec<u16> = self.old.isles.iter().filter(|i| i.copper && !i.pads.is_empty()).map(|i| i.net).collect();
@@ -255,6 +261,13 @@ impl Router {
             vias += j.vias.len();
             for t in &j.tracks {
                 mm += t.length();
+            }
+        }
+        for t in self.sc.copper.tracks.iter().filter(|t| t.laid) {
+            for piece in &t.path {
+                if let crate::scene::PathPiece::Line(v) = piece {
+                    mm += crate::geom::hypot(v[2] - v[0], v[3] - v[1]);
+                }
             }
         }
         (mm, vias, self.search.pops, self.search.searches)

@@ -11,7 +11,9 @@ pub fn plan_json(r: &Router, note: &str, read_s: f64, total_s: f64) -> String {
     let mut first = true;
     for (ni, n) in r.sc.nets.iter().enumerate() {
         let jobs: Vec<&Job> = r.jobs.iter().filter(|j| j.net as usize == ni && (!j.tracks.is_empty() || !j.vias.is_empty())).collect();
-        if jobs.is_empty() {
+        // (what a pass laid before the route is the plan's copper too: `passes::pairs`)
+        let laid: Vec<&crate::scene::OldTrack> = r.sc.copper.tracks.iter().filter(|t| t.laid && t.net as usize == ni).collect();
+        if jobs.is_empty() && laid.is_empty() {
             continue;
         }
         if !first {
@@ -20,6 +22,23 @@ pub fn plan_json(r: &Router, note: &str, read_s: f64, total_s: f64) -> String {
         first = false;
         let _ = write!(o, "\n  {{\"name\": {}, \"tracks\": [", quote(&n.name));
         let mut ft = true;
+        for t in &laid {
+            if !ft {
+                o.push(',');
+            }
+            ft = false;
+            let _ = write!(o, "\n    {{\"layer\": {}, \"width\": {}, \"path\": [", quote(&r.sc.layers[t.layer]), num(t.width));
+            for (k, p) in t.path.iter().enumerate() {
+                if k > 0 {
+                    o.push_str(", ");
+                }
+                let _ = match p {
+                    crate::scene::PathPiece::Line(v) => write!(o, "{{\"line\": [{}, {}, {}, {}]}}", num(v[0]), num(v[1]), num(v[2]), num(v[3])),
+                    crate::scene::PathPiece::Arc(v) => write!(o, "{{\"arc\": [{}, {}, {}, {}, {}, {}]}}", num(v[0]), num(v[1]), num(v[2]), num(v[3]), num(v[4]), num(v[5])),
+                };
+            }
+            o.push_str("]}");
+        }
         for j in &jobs {
             for t in &j.tracks {
                 if !ft {
@@ -191,6 +210,9 @@ pub fn lines(r: &Router, note: &str, read_s: f64, total_s: f64, verbose: bool) -
     }
     if opens.len() > 12 {
         out.push(format!("astar: open: and {} more nets (the plan's notes say which, and why)", opens.len() - 12));
+    }
+    for n in r.notes.iter().filter(|n| n.kind == "pair") {
+        out.push(format!("astar: pair: {} and its mate: {}", r.sc.nets[n.net as usize].name, n.detail));
     }
     for n in r.notes.iter().filter(|n| n.kind == "thin") {
         out.push(format!("astar: thin: {}", n.detail));
