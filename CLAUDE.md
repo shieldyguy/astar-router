@@ -48,14 +48,18 @@ asked: `git push origin main:release` builds, tests and publishes `build-<sha12>
   KiCad's DRC knows nothing of this rule.
 - A net left open says what is in its way: `astar: open: NET: ...` names the pad or keep-out that shuts
   a pad in, or the nets whose copper the nearest way runs through, with the place.
-- A block laid out alone whose ground is its host's pour: `--drops GND`.
+- Ground and planes. A pour or plane drawn on the board is used as drawn. A ground with nothing drawn
+  gets copper from astar (`astar: planned: ...` says what): the first free inner layer as its plane, or
+  on a two-layer board a pour on the side with fewer parts, written to OUT as a zone. The busiest rail
+  gets the next free inner layer when the board still routes whole (`--pour 0`: never). Say it yourself
+  with `--plane 'GND=In1.Cu,+3V3=In2.Cu'` (inner layer: plane; outer layer: pour; `GND=In1.Cu+B.Cu` both).
+  `--ground tracks` wires the ground as a net instead.
+- A block laid out alone whose ground is its host's pour: `--drops GND` (vias only, no pour drawn).
 
 ## What it does not do yet (an outside review, 2026-11-19)
 
 Read its notes on stderr: it says what it ignored, but the exit code does not change for these.
 
-- **Ground is not poured.** With no ground zone drawn, ground is routed as thin track. Draw the ground
-  pour or plane first. A rail may be given a free inner layer by itself (`--pour 0` turns that off).
 - **No power sense.** A net is as wide as its class and nothing more; no vias in exposed pads; a class's
   via size is ignored; nothing warns when a rail is at signal width.
 - **Differential pairs are two plain nets.** No length matching, no impedance.

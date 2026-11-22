@@ -21,7 +21,12 @@ const USAGE: &str = "usage: astar route IN.kicad_pcb -o OUT.kicad_pcb [--plan PL
              [--turn MM] [--inner X] [--rip MM] [--rip-drop MM] [--fence MM] [--lane MM] [--toll X] [--pour PADS]
              [--one-way] [--rounds N] [--pressure X] [--radius MM] [--seconds S] [--skip PASS] [--strict] [-v]
              [--cross X] [--drops NET[,NET]] [--nets NET[,NET]] [--except NET[,NET]]
-             [--route-on NET=LAYER[+LAYER][,...]] [--stub MM]
+             [--route-on NET=LAYER[+LAYER][,...]] [--stub MM] [--plane NET=LAYER[+LAYER][,...]] [--ground tracks]
+         --plane NET=LAYER: the net's copper, said outright (--plane 'GND=In1.Cu,+3V3=In2.Cu'): an inner layer is
+                      its plane (closed to tracks, every pad of the net a via down), an outer layer gets
+                      its pour over the whole board (open to tracks; the net leans on the fill)
+         --ground tracks: a ground the board draws no pour or plane for is wired as a net. Left alone, it
+                      gets copper: a free inner layer as its plane, else a pour on the side with fewer parts
          --route-on NET=LAYER: the net's tracks run on these layers only (--route-on 'CLK*=B.Cu'); its vias go
                       through every layer as always. A pad of it on another layer is left by a stub to a
                       via, no longer than --stub
@@ -131,6 +136,29 @@ fn route_command(args: &[String], old_form: bool) -> ! {
                         }
                     }
                     _ => bad(),
+                }
+            }
+            "--plane" => {
+                i += 1;
+                let bad = || refuse("--plane takes NET=LAYER, with + between layers and commas between nets: --plane 'GND=In1.Cu,+3V3=In2.Cu' (an inner layer is the net's plane, an outer one gets its pour)");
+                match args.get(i) {
+                    Some(spec) if !spec.starts_with("--") => {
+                        for one in spec.split(',').filter(|s| !s.is_empty()) {
+                            match one.rsplit_once('=') {
+                                Some((net, layers)) if !net.is_empty() && !layers.is_empty() => cfg.planes.push((net.to_string(), layers.split('+').map(str::to_string).collect())),
+                                _ => bad(),
+                            }
+                        }
+                    }
+                    _ => bad(),
+                }
+            }
+            "--ground" => {
+                i += 1;
+                match args.get(i).map(|a| a.as_str()) {
+                    Some("tracks") => cfg.ground_tracks = true,
+                    Some("plan") => cfg.ground_tracks = false,
+                    _ => refuse("--ground takes tracks (the ground is wired as a net) or plan (a ground the board draws no copper for gets a plane or a pour: the default)"),
                 }
             }
             "--stub" => cfg.stub_mm = val(&mut i),

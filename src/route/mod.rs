@@ -274,6 +274,30 @@ pub fn check(sc: &Scene, cfg: &Cfg) -> Result<(), String> {
             }
         }
     }
+    let nl = sc.layers.len();
+    let mut given: Vec<(usize, usize)> = Vec::new();
+    for (name, layers) in &cfg.planes {
+        let said = format!("--plane {}={}", name, layers.join("+"));
+        let Some(n) = sc.nets.iter().skip(1).position(|x| x.name == *name).map(|i| i + 1) else {
+            return Err(format!("{}: the board has no net of that name", said));
+        };
+        for l in layers {
+            let Some(li) = sc.layers.iter().position(|x| x == l) else {
+                return Err(format!("{}: the board has no copper layer {} (it has {})", said, l, sc.layers.join(", ")));
+            };
+            if li == 0 || li + 1 >= nl {
+                continue;
+            }
+            // an inner layer is a plane: one a net, one net a layer
+            if let Some(o) = sc.nets.iter().position(|x| x.plane == Some(li)).filter(|o| *o != n) {
+                return Err(format!("{}: {} is the plane of {} already", said, l, sc.nets[o].name));
+            }
+            if sc.nets[n].plane.map_or(false, |p| p != li) || given.iter().any(|g| (g.0 == n) != (g.1 == li)) {
+                return Err(format!("{}: a net has one plane, and a layer is one net's (an outer layer can be given besides, as a pour)", said));
+            }
+            given.push((n, li));
+        }
+    }
     // a net kept to layers needs one of them to run on
     let mut asked = sc.clone();
     ask(&mut asked, cfg);

@@ -61,7 +61,13 @@ pub fn plan_json(r: &Router, note: &str, read_s: f64, total_s: f64) -> String {
         if k > 0 {
             o.push_str(", ");
         }
-        let _ = write!(o, "{{\"net\": {}, \"layer\": {}}}", quote(&r.sc.nets[n as usize].name), quote(&r.sc.layers[l]));
+        let _ = write!(o, "{{\"net\": {}, \"layer\": {}", quote(&r.sc.nets[n as usize].name), quote(&r.sc.layers[l]));
+        // a pour the router drew on a layer that stays open to tracks: how it is to be filled
+        if r.sc.nets[n as usize].plane != Some(l) {
+            use crate::scene::{POUR_CLEARANCE, POUR_GAP, POUR_MIN_WIDTH, POUR_SPOKE};
+            let _ = write!(o, ", \"pour\": true, \"pads\": \"thermal\", \"clearance\": {}, \"min_width\": {}, \"thermal_gap\": {}, \"spoke_width\": {}", num(POUR_CLEARANCE), num(POUR_MIN_WIDTH), num(POUR_GAP), num(POUR_SPOKE));
+        }
+        o.push('}');
     }
     // a net joined off this board: its pads' vias reach a pour that is its host's (no copper is laid for it)
     for (k, &n) in r.hosted.iter().enumerate() {
@@ -185,6 +191,9 @@ pub fn lines(r: &Router, note: &str, read_s: f64, total_s: f64, verbose: bool) -
     }
     if opens.len() > 12 {
         out.push(format!("astar: open: and {} more nets (the plan's notes say which, and why)", opens.len() - 12));
+    }
+    for n in r.notes.iter().filter(|n| n.kind == "planned") {
+        out.push(format!("astar: planned: {}: {}", r.sc.nets[n.net as usize].name, n.detail));
     }
     // what KiCad will find and astar could not help
     for n in r.notes.iter().filter(|n| n.kind == "short") {

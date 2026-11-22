@@ -67,5 +67,5 @@ fn bad_input_is_exit_2_with_the_reason_and_no_plan() {
 fn the_passes_are_listed_in_order() {
     let o = Command::new(env!("CARGO_BIN_EXE_astar")).arg("--passes").output().unwrap();
     let names: Vec<String> = String::from_utf8_lossy(&o.stdout).lines().map(|l| l.split_whitespace().next().unwrap_or("").to_string()).collect();
-    assert_eq!(names, ["pour", "fences", "exits", "cross", "drops", "route", "tight", "arcs"]);
+    assert_eq!(names, ["ground", "pour", "fences", "exits", "cross", "drops", "route", "tight", "arcs"]);
 }

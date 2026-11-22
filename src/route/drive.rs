@@ -106,11 +106,11 @@ fn allowed(plain_work: u64) -> u64 {
 /// and plain. Which is kept depends on the two boards' open nets and search work alone, never on which
 /// thread was done first: the changed board is kept when it did no more search than `allowed` by the
 /// plain one's and is whole, or has fewer nets open than the plain one.
-fn both_ways(changed: Scene, poured: Vec<(u16, usize)>, plain: Scene, cfg: &Cfg) -> Routed {
+fn both_ways(changed: Scene, poured: Vec<(u16, usize)>, plain: Scene, drawn: Vec<(u16, usize)>, cfg: &Cfg) -> Routed {
     let (c1, c2) = (cfg.clone(), cfg.clone());
     // (both boards were checked before the threads were started: `route`)
     let checked = "the board was checked";
-    race(move |limit| board(changed, &c1, poured, Some(limit), None).expect(checked), move |stop, progress| board(plain, &c2, Vec::new(), Some(stop), Some(progress)).expect(checked), allowed)
+    race(move |limit| board(changed, &c1, poured, Some(limit), None).expect(checked), move |stop, progress| board(plain, &c2, drawn, Some(stop), Some(progress)).expect(checked), allowed)
 }
 
 /// `changed(limit)` and `plain(stop, progress)` each route a board on a thread of its own; see `both_ways`.
@@ -213,18 +213,31 @@ impl Routed {
 /// The board through the board passes, the plan passes and the route: both ways when a board pass
 /// changed it.
 fn routed(sc: Scene, cfg: &Cfg) -> Result<Routed, Error> {
+    // what is drawn for the board (the ground's copper, the planes the run names) is the board from here
+    // on; a drawing the router cannot take (`check`) is left out, and the board routed as it came
+    let (mut sc, mut drawn) = (sc, Vec::new());
+    for (i, p) in PASSES.iter().enumerate() {
+        if let (Step::Draw(f), true) = (p.step, on(cfg, i)) {
+            let mut next = sc.clone();
+            let got = f(&mut next, cfg);
+            if !got.is_empty() && super::check(&next, cfg).is_ok() {
+                sc = next;
+                drawn.extend(got);
+            }
+        }
+    }
     let mut changed = sc.clone();
-    let mut poured: Vec<(u16, usize)> = Vec::new();
+    let mut poured = drawn.clone();
     for (i, p) in PASSES.iter().enumerate() {
         if let (Step::Board(f), true) = (p.step, on(cfg, i)) {
             poured.extend(f(&mut changed, cfg));
         }
     }
-    Ok(if poured.is_empty() || super::check(&changed, cfg).is_err() {
+    Ok(if poured.len() == drawn.len() || super::check(&changed, cfg).is_err() {
         // (a board the board passes made unroutable is routed as it came)
-        Routed::of(board(sc, cfg, Vec::new(), None, None).map_err(Error::BadInput)?, String::new())
+        Routed::of(board(sc, cfg, drawn, None, None).map_err(Error::BadInput)?, String::new())
     } else if cfg.two_ways {
-        both_ways(changed, poured, sc, cfg)
+        both_ways(changed, poured, sc, drawn, cfg)
     } else {
         Routed::of(board(changed, cfg, poured, None, None).map_err(Error::BadInput)?, String::new())
     })

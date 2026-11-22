@@ -24,6 +24,11 @@ pub struct Cfg {
     pub exit_mm: f64,
     /// what a step across another net's pour costs, in steps on top of its own (`passes::cross`); 0: nothing
     pub cross_mul: f64,
+    /// the layers given to nets outright (`--plane 'GND=In1.Cu,+3V3=In2.Cu'`): an inner layer is the net's
+    /// plane, an outer one gets a pour of the net over the whole board
+    pub planes: Vec<(String, Vec<String>)>,
+    /// leave a ground the board draws no copper for to be wired as a net (`--ground tracks`)
+    pub ground_tracks: bool,
     /// nets that are joined off this board: each of their pads gets a via and nothing else (`--drops`)
     pub drops: Vec<String>,
     /// the nets to route, by name, `*` for any run of letters (`--nets`); empty: every net the scene asks for
@@ -81,6 +86,8 @@ impl Default for Cfg {
             neck_mul: 4,
             exit_mm: 2.0,
             cross_mul: 2.0,
+            planes: Vec::new(),
+            ground_tracks: false,
             drops: Vec::new(),
             nets: Vec::new(),
             except: Vec::new(),

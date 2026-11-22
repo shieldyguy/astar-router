@@ -1,5 +1,5 @@
-//! How a pour is used: copper to go down into, crossed only where the way round is dearer; and what is
-//! said when a board has none for its ground.
+//! How a pour is used: copper to go down into, crossed only where the way round is dearer; and what a
+//! ground gets when the board draws none for it.
 //!
 //! The scenes are one 20 x 10 mm board of two layers: a wall down the middle of the front that SIG can
 //! pass only on the back, and GND's four pads in the corners of the front.
@@ -44,22 +44,86 @@ fn a_pour_is_gone_down_into_and_crossed_no_further_than_it_must_be() {
     assert!(note(&p, "ground").is_none());
 }
 
+fn wired() -> Cfg {
+    Cfg { ground_tracks: true, ..Cfg::default() }
+}
+
 #[test]
 fn a_board_poured_on_every_layer_is_priced_as_one_with_no_pour() {
     // with GND poured on both layers no layer is the better one to cross on: SIG runs as it does on the
     // bare board
-    let (both, none) = (plan("pour_both.json", &Cfg::default()), plan("pour_none.json", &Cfg::default()));
+    let (both, none) = (plan("pour_both.json", &Cfg::default()), plan("pour_none.json", &wired()));
     for layer in ["F.Cu", "B.Cu"] {
         assert_eq!(copper(&both, "SIG", layer), copper(&none, "SIG", layer));
     }
 }
 
 #[test]
-fn a_ground_with_no_pour_is_wired_and_said() {
-    let p = plan("pour_none.json", &Cfg::default());
+fn a_ground_the_board_draws_nothing_for_gets_a_pour_on_a_board_of_two_layers() {
+    // the parts are on the front: the pour goes on the back, and the board is routed as the one whose
+    // designer drew that pour
+    let (p, drawn) = (plan("pour_none.json", &Cfg::default()), plan("pour_bottom.json", &Cfg::default()));
+    let planes = p.get("planes").arr();
+    assert_eq!(planes.len(), 1);
+    assert_eq!((planes[0].get("net").s(), planes[0].get("layer").s(), planes[0].get("pour").b(), planes[0].get("pads").s()), (Some("GND"), Some("B.Cu"), true, Some("thermal")));
+    let (front, vias) = copper(&p, "GND", "F.Cu");
+    assert_eq!(vias, 4);
+    assert!(front < 4.0 && copper(&p, "GND", "B.Cu").0 == 0.0, "{} mm on the front", front);
+    assert!(copper(&p, "SIG", "B.Cu").0 < 2.5 && copper(&drawn, "SIG", "B.Cu").0 < 2.5);
+    let n = note(&p, "planned").expect("the planned note");
+    assert_eq!(n.get("net").s(), Some("GND"));
+    assert!(note(&p, "ground").is_none());
+    // astar's own check takes the pour as the board's
+    let scene = Scene::load(&format!("{}/tests/scenes/pour_none.json", env!("CARGO_MANIFEST_DIR"))).unwrap();
+    let report = astar::check::check(&scene, &astar::check::plan::Plan::from_json(&p).unwrap(), &[]);
+    assert!(report.findings.is_empty(), "{:?}", report.findings.iter().map(|f| (f.kind, f.net.clone())).collect::<Vec<_>>());
+}
+
+#[test]
+fn a_ground_can_be_wired_as_a_net_and_that_is_said() {
+    let p = plan("pour_none.json", &wired());
+    assert!(p.get("planes").arr().is_empty() && note(&p, "planned").is_none());
     let n = note(&p, "ground").expect("the ground note");
     assert_eq!(n.get("net").s(), Some("GND"));
     assert!(copper(&p, "GND", "F.Cu").0 + copper(&p, "GND", "B.Cu").0 > 20.0);
+}
+
+/// every_field.json, four layers, with the ground plane its designer drew taken off.
+fn four_layers_no_ground() -> Scene {
+    let text = std::fs::read_to_string(format!("{}/tests/scenes/every_field.json", env!("CARGO_MANIFEST_DIR"))).unwrap();
+    let mut j = astar::json::parse(&text).unwrap();
+    let empty = |j: &mut J, a: &str, b: &str| {
+        let J::Obj(top) = j else { panic!() };
+        let J::Obj(inner) = &mut top.iter_mut().find(|(k, _)| k == a).unwrap().1 else { panic!() };
+        inner.iter_mut().find(|(k, _)| k == b).unwrap().1 = J::Arr(Vec::new());
+    };
+    empty(&mut j, "stack", "planes");
+    empty(&mut j, "copper", "zones");
+    Scene::from_json(&j).unwrap()
+}
+
+#[test]
+fn a_ground_the_board_draws_nothing_for_gets_the_first_free_inner_layer() {
+    let planes_of = |cfg: &Cfg| -> Vec<(String, String, bool)> {
+        let routed = route(four_layers_no_ground(), cfg).unwrap();
+        let p = astar::json::parse(&routed.plan()).unwrap();
+        p.get("planes").arr().iter().map(|q| (q.get("net").s().unwrap().to_string(), q.get("layer").s().unwrap().to_string(), q.get("pour").b())).collect()
+    };
+    let one = |n: &str, l: &str, pour: bool| (n.to_string(), l.to_string(), pour);
+    // the ground first, then the rail on the next
+    let auto = planes_of(&Cfg { two_ways: false, ..Cfg::default() });
+    assert_eq!(auto, vec![one("GND", "In1.Cu", false), one("VCC", "In2.Cu", false)]);
+    // said outright: the ground on the other inner layer and a pour of it on the back besides
+    let said = planes_of(&Cfg { planes: vec![("GND".into(), vec!["In2.Cu".into(), "B.Cu".into()])], pour_pads: 0, ..Cfg::default() });
+    assert_eq!(said, vec![one("GND", "In2.Cu", false), one("GND", "B.Cu", true)]);
+    // wired: the ground gets nothing, the rail the free layer as before
+    let wired = planes_of(&Cfg { two_ways: false, ..wired() });
+    assert_eq!(wired, vec![one("VCC", "In1.Cu", false)]);
+    // what cannot be: a net the board does not have, a layer it does not have, two nets on one layer
+    for bad in [vec![("NOPE", "In1.Cu")], vec![("GND", "In7.Cu")], vec![("GND", "In1.Cu"), ("VCC", "In1.Cu")]] {
+        let cfg = Cfg { planes: bad.iter().map(|(n, l)| (n.to_string(), vec![l.to_string()])).collect(), ..Cfg::default() };
+        assert!(route(four_layers_no_ground(), &cfg).is_err(), "{:?}", bad);
+    }
 }
 
 #[test]

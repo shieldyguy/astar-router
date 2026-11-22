@@ -6,6 +6,7 @@ pub mod drops;
 pub mod egress;
 pub mod exits;
 pub mod fences;
+pub mod ground;
 pub mod pour;
 
 use crate::route::{Cfg, Node, Router};
@@ -23,6 +24,10 @@ pub struct Pass {
 /// the passes run in the order of `PASSES`.
 #[derive(Clone, Copy)]
 pub enum Step {
+    /// Before anything else: draws on the board what its designer left to the router (the ground's
+    /// copper, the planes the run names). It returns what it gave to nets, as (net, layer): a plane on an
+    /// inner layer, a pour on an outer one; they are written to the plan. The board is routed with it.
+    Draw(fn(&mut Scene, &Cfg) -> Vec<(u16, usize)>),
     /// Before the field is built: may change the board the router is given. It returns the planes it
     /// gave to nets, as (net, layer); they are written to the plan. A board that a board pass changed is
     /// routed both ways, with the change and without (`route::drive`).
@@ -41,6 +46,7 @@ pub enum Step {
 impl Step {
     pub fn stage(&self) -> &'static str {
         match self {
+            Step::Draw(_) => "board",
             Step::Board(_) => "board",
             Step::Plan(_) => "plan",
             Step::Route(_) => "route",
@@ -51,7 +57,7 @@ impl Step {
 }
 
 /// Every pass, in the order they run.
-pub const PASSES: &[Pass] = &[pour::PASS, fences::PASS, exits::PASS, cross::PASS, drops::PASS, crate::route::PASS, crate::finish::tight::PASS, crate::finish::arcs::PASS];
+pub const PASSES: &[Pass] = &[ground::PASS, pour::PASS, fences::PASS, exits::PASS, cross::PASS, drops::PASS, crate::route::PASS, crate::finish::tight::PASS, crate::finish::arcs::PASS];
 
 /// The clock entry for what no pass owns: the field, the exact index, the pads' access nodes.
 pub const FIELD: usize = PASSES.len();

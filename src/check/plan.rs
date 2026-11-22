@@ -38,6 +38,8 @@ pub struct Plane {
     pub holes: Vec<Vec<Vec<(f64, f64)>>>,
     /// the plane is not on this board: the net is joined by its host's pour (`astar route --drops`)
     pub host: bool,
+    /// a pour the router drew over the whole board on a layer that stays open to tracks (`Scene::draw_pour`)
+    pub pour: bool,
 }
 
 pub struct Plan {
@@ -144,7 +146,7 @@ impl Plan {
                 }
                 holes.push(one);
             }
-            planes.push(Plane { net, layer, outline, holes, host: q.get("host").b() });
+            planes.push(Plane { net, layer, outline, holes, host: q.get("host").b(), pour: q.get("pour").b() });
         }
         let left_out = j.get("left_out").arr().iter().filter_map(|x| x.get("net").s().map(|s| s.to_string())).collect();
         let not_asked = j.get("not_asked").arr().iter().filter_map(|x| x.s().map(|s| s.to_string())).collect();

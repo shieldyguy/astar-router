@@ -16,11 +16,7 @@ pub fn pour_choice(sc: &Scene, cfg: &Cfg) -> Option<(usize, usize)> {
     if cfg.pour_pads == 0 {
         return None;
     }
-    let nl = sc.layers.len();
-    // a layer is free when no net has a plane on it and the board pours nothing there itself
-    let mut taken: Vec<usize> = sc.nets.iter().filter_map(|n| n.plane).collect();
-    taken.extend(sc.copper.zones.iter().filter(|z| z.net != 0 && !(z.locked && z.min_width == Some(0.0))).map(|z| z.layer));
-    let layer = (1..nl.saturating_sub(1)).find(|l| !taken.contains(l))?;
+    let layer = super::ground::free_inner(sc).first().copied()?;
     let best = (1..sc.nets.len()).filter(|&i| sc.nets[i].class == Class::Rail && sc.nets[i].wanted() && sc.nets[i].plane.is_none() && sc.nets[i].pads.len() >= cfg.pour_pads).max_by_key(|&i| sc.nets[i].pads.len())?;
     Some((best, layer))
 }

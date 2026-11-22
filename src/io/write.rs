@@ -252,9 +252,9 @@ pub fn lay(rd: &Read, plan: &J, seed: u64) -> Result<(String, Laid), String> {
             if prio != 0 {
                 parts.push(format!("(priority {})", prio));
             }
-            parts.push(format!("(connect_pads{}\n\t(clearance 0.2)\n)", pads));
+            parts.push(format!("(connect_pads{}\n\t(clearance {})\n)", pads, num(q.get("clearance").f_or(0.2))));
             parts.push(format!("(min_thickness {})", num(q.get("min_width").f_or(0.2))));
-            parts.push("(fill yes\n\t(thermal_gap 0.3)\n\t(thermal_bridge_width 0.3)\n\t(island_removal_mode 0)\n)".into());
+            parts.push(format!("(fill yes\n\t(thermal_gap {})\n\t(thermal_bridge_width {})\n\t(island_removal_mode 0)\n)", num(q.get("thermal_gap").f_or(0.3)), num(q.get("spoke_width").f_or(0.3))));
             let mut pts = String::from("(polygon\n\t(pts\n\t\t");
             for (k, p) in lp.iter().enumerate() {
                 let _ = write!(pts, "{}(xy {} {})", if k > 0 { " " } else { "" }, num(p.0), num(p.1));

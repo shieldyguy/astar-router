@@ -321,7 +321,42 @@ pub struct Scene {
     pub groups: Vec<Group>,
 }
 
+/// A pour the router draws itself (`Scene::draw_pour`): what it keeps from other nets, its least width,
+/// and the relief round its pads, the gap and the spokes (the house's: 10 mil spokes over a 10 mil gap).
+pub const POUR_CLEARANCE: f64 = 0.2;
+pub const POUR_MIN_WIDTH: f64 = 0.2;
+pub const POUR_GAP: f64 = 0.254;
+pub const POUR_SPOKE: f64 = 0.254;
+
 impl Scene {
+    /// A pour for a net over the whole board on one layer, as a designer would have drawn it: the box
+    /// round the outline and a millimetre more (KiCad fills it up to the edge), thermal reliefs at its
+    /// pads. The router leans on it like on any pour the board draws (`route::fill`).
+    pub fn draw_pour(&mut self, net: usize, layer: usize) {
+        let mut b = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+        for &(x0, y0, x1, y1) in &self.outline {
+            b = (b.0.min(x0).min(x1), b.1.min(y0).min(y1), b.2.max(x0).max(x1), b.3.max(y0).max(y1));
+        }
+        if b.0 > b.2 {
+            return;
+        }
+        let outline = vec![(b.0 - 1.0, b.1 - 1.0), (b.2 + 1.0, b.1 - 1.0), (b.2 + 1.0, b.3 + 1.0), (b.0 - 1.0, b.3 + 1.0)];
+        self.copper.zones.push(Zone {
+            net: net as u16,
+            layer,
+            outline,
+            holes: Vec::new(),
+            fill: Vec::new(),
+            priority: 0,
+            clearance: Some(POUR_CLEARANCE),
+            min_width: Some(POUR_MIN_WIDTH),
+            pads: ZonePads::Thermal,
+            thermal_gap: Some(POUR_GAP),
+            spoke_width: Some(POUR_SPOKE),
+            locked: false,
+        });
+    }
+
     /// What the scene carries that the router does not use yet, one line a thing. A track that starts
     /// using one takes its line out.
     pub fn carried_unused(&self) -> Vec<String> {

@@ -165,6 +165,12 @@ fn copper_is_lifted_by_its_id_and_a_plane_takes_the_zones_place() {
     assert_eq!((zones[0].get("pads").s(), zones[0].get("holes").arr().len()), (Some("thermal_tht"), 0));
     // nothing else moved: the text less the two items and the new zone is the board's
     assert!(text.contains("(uuid \"00000000-0000-4000-8000-00000000000b\")") && !text.contains("00000000-0000-4000-8000-00000000000a"));
+    // a pour the router drew is written as the router modelled it (`Scene::draw_pour`): read back, the
+    // zone is the one the scene had
+    let pour = json::parse(r#"{"nets": [], "planes": [{"net": "GND", "layer": "B.Cu", "pour": true, "pads": "thermal", "clearance": 0.2, "min_width": 0.2, "thermal_gap": 0.254, "spoke_width": 0.254}]}"#).unwrap();
+    let again = reread(&lay(&rd, &pour, 0).unwrap().0, "pour");
+    let z = &again.get("copper").get("zones").arr()[0];
+    assert_eq!((z.get("pads").s(), z.get("clearance").f(), z.get("min_width").f(), z.get("thermal_gap").f(), z.get("spoke_width").f()), (Some("thermal"), Some(0.2), Some(0.2), Some(0.254), Some(0.254)));
     // a plane that is the net's host's (`--drops`) is not this board's to draw
     let hosted = json::parse(r#"{"nets": [], "planes": [{"net": "GND", "layer": "B.Cu", "host": true}]}"#).unwrap();
     assert_eq!(lay(&rd, &hosted, 0).unwrap().1.zones, 0);

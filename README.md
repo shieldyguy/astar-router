@@ -71,7 +71,8 @@ every run.
    board itself (8, below) is routed once.
 4. **Plane drops.** Every surface pad of a plane net gets a short track and a via; a pad may share a via the
    net already has. Big exposed pads may take the via inside the pad.
-5. **Rail pour** (krt-better's rail_pours). The busiest rail is poured on the free inner layer. The board is
+5. **Rail pour** (krt-better's rail_pours). The busiest rail is poured on the free inner layer (the next
+   one after the ground's, where the router planned that: 10). The board is
    routed both ways at once, with the pour and without. The poured one is kept when it is whole and took
    at most a quarter more search than the plain one (and four million nodes); past that it is given up.
    The choice depends on the two boards' search work alone, never on which was done first.
@@ -159,9 +160,19 @@ every run.
    signals, a wide path for a current. A step across another net's pour costs twice a step beside it
    (`--cross`), so a track cuts a pour where the way round is dearer and no further than it must. Where
    every layer is poured nothing is charged: there no layer is the better one to cross on.
-   **The board is the declaration.** What a net's copper should be is read off the board and nowhere
-   else: a zone drawn for a net is its pour, a layer given to a net is its plane. A ground with neither
-   is wired as any net is, and the plan's notes say so (`ground`).
+   **The board is the declaration, and what it leaves unsaid the router plans** (`src/passes/ground.rs`).
+   What a net's copper should be is read off the board first: a zone drawn for a net is its pour, a layer
+   given to a net is its plane. A ground the board draws nothing for gets what its designer would have
+   drawn: the first free inner layer as its plane, and on a board with no inner layer a pour over the
+   whole board on the side with fewer parts, relieved at its pads by 10 mil spokes over a 10 mil gap. The
+   board is then routed as if that had been drawn: every ground pad a via down, signals crossing the
+   pour no further than they must. The plan says so (`planned`), and the pour is written to the board
+   as a zone. `--plane 'GND=In1.Cu,+3V3=In2.Cu'` gives any net its layers outright (an inner layer is a
+   plane, an outer one gets a pour; `--plane 'GND=In1.Cu+B.Cu'` is both). `--ground tracks` wires the
+   ground as any net is, and the notes say so (`ground`).
+   On the 29 house and fixture boards whose ground has nothing drawn, the planned pour cut the track by
+   a fifth (5,859 mm to 4,589 mm) with the same nets joined, and KiCad's verdict after a refill was the
+   same on every one: no error and no open net that the wired board did not have.
    **Some nets only** (`--nets`, `--except`, the scene's `scope`). The nets asked for are routed; the
    others get no copper and are not counted as open. They are still on the board: their pads and their
    copper are fixed copper to the nets that are routed, and their fine-pitch pins keep their fences and
@@ -196,7 +207,8 @@ every run.
 
 The plan to close these, and the rest of the distance to KRT, is in `plan/` (start at `plan/README.md`).
 
-- One rail is poured; the other rails are track.
+- The ground and one rail get a plane or a pour; the other rails are track. A board with inner planes
+  gets no ground pour on its outer layers unless `--plane` asks for one.
 - Copper already on the board is never lifted: a net whose old copper is in another's way is not
   routed again. The fill a zone was last given is not read; astar works the fill out itself (10).
 - Differential pairs, length matching and impedance are not known to it.

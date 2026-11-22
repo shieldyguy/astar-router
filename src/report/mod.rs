@@ -114,7 +114,17 @@ impl Router {
             }
             let mm: f64 = self.jobs.iter().filter(|j| j.net == n as u16).flat_map(|j| j.tracks.iter()).map(|t| t.pts.windows(2).map(|w| crate::geom::hypot(w[1].0 - w[0].0, w[1].1 - w[0].1)).sum::<f64>()).sum();
             let name = net.name.clone();
-            self.note("ground", n as u16, None, format!("{} pads joined by {:.0} mm of track: the board has no pour and no plane for its ground (a pour drawn on the board is used; --drops {} is for a block whose pour is its host's)", self.sc.nets[n].pads.len(), mm, name));
+            self.note("ground", n as u16, None, format!("{} pads joined by {:.0} mm of track: the ground has no pour and no plane, and is wired as a net (--drops {} is for a block whose pour is its host's)", self.sc.nets[n].pads.len(), mm, name));
+        }
+        // the copper the router drew for a net: the ground's where the board drew none, and what the run named
+        for &(n, l) in &self.poured.clone() {
+            let net = &self.sc.nets[n as usize];
+            let what = if net.plane == Some(l) { format!("{} is its plane: the layer is closed to tracks, and every pad of the net goes down to it by a via", self.sc.layers[l]) } else { format!("a pour of it is drawn over the board on {}: the layer stays open to tracks, and the net leans on the fill", self.sc.layers[l]) };
+            if self.cfg.planes.iter().any(|(name, _)| *name == net.name) {
+                self.note("planned", n, None, format!("{}, as --plane says", what));
+            } else if net.class == crate::scene::Class::Ground {
+                self.note("planned", n, None, format!("the board draws no copper for its ground. {} (--ground tracks wires it as a net; --plane gives it other layers)", what));
+            }
         }
         // track ends that are not on the line of the pad they end at
         let (on, off): (u32, u32) = self.jobs.iter().fold((0, 0), |s, j| (s.0 + j.ends.0, s.1 + j.ends.1));

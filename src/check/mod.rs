@@ -282,7 +282,7 @@ fn fill_model(sc: &Scene, plan: &Plan) -> Option<crate::route::Router> {
         return None;
     }
     let mut sc = sc.clone();
-    for q in plan.planes.iter().filter(|q| !q.host && q.outline.is_empty()) {
+    for q in plan.planes.iter().filter(|q| !q.host && !q.pour && q.outline.is_empty()) {
         if let (Some(n), Some(l)) = (sc.nets.iter().position(|n| n.name == q.net), sc.layers.iter().position(|l| *l == q.layer)) {
             if n != 0 && sc.nets[n].plane.is_none() {
                 sc.nets[n].plane = Some(l);
@@ -325,6 +325,20 @@ struct PlaneNode {
 
 /// The whole check. `planes`: the scene's declared planes (`scene_planes`).
 pub fn check(sc: &Scene, plan: &Plan, planes: &[(u16, usize)]) -> Report {
+    // a pour the router drew is on the board as far as the check goes: a zone like any the board draws
+    let drawn;
+    let sc = if plan.planes.iter().any(|q| q.pour) {
+        let mut with = sc.clone();
+        for q in plan.planes.iter().filter(|q| q.pour) {
+            if let (Some(n), Some(l)) = (with.nets.iter().position(|n| n.name == q.net), with.layers.iter().position(|l| *l == q.layer)) {
+                with.draw_pour(n, l);
+            }
+        }
+        drawn = with;
+        &drawn
+    } else {
+        sc
+    };
     let rules = Rules::new(sc);
     let nl = sc.layers.len();
     let all: u32 = if nl >= 32 { u32::MAX } else { (1u32 << nl) - 1 };
@@ -428,6 +442,9 @@ pub fn check(sc: &Scene, plan: &Plan, planes: &[(u16, usize)]) -> Report {
             findings.push(bad_plan(&q.net, format!("a plane of a net or on a layer ({}) the scene does not have", q.layer)));
             continue;
         };
+        if q.pour {
+            continue;
+        }
         if q.outline.is_empty() {
             let node = b.node();
             plane_nodes.push(PlaneNode { net, layer, area: None, node });
