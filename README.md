@@ -69,8 +69,10 @@ every run.
    nets are open (the plan's note says so). Only where that can help: when a net is open for want of
    room among the others, and the run has time left. A board whose open pads are all shut in by the
    board itself (8, below) is routed once.
-4. **Plane drops.** Every surface pad of a plane net gets a short track and a via; a pad may share a via the
-   net already has. Big exposed pads may take the via inside the pad.
+4. **Plane drops.** Every surface pad of a plane net gets a short track and a via of its own beside it.
+   Ending on a via or a pad the net already has costs as much as a new via (`--share`, 1.5 mm of track),
+   so a pad shares one only where that is nearer than the room for its own. An exposed pad (a big pad
+   inside its part's ring of pins) takes its via inside itself, on a plane net and on any other.
 5. **Rail pour** (krt-better's rail_pours). The busiest rail is poured on the free inner layer (the next
    one after the ground's, where the router planned that: 10). The board is
    routed both ways at once, with the pour and without. The poured one is kept when it is whole and took
@@ -214,7 +216,9 @@ The plan to close these, and the rest of the distance to KRT, is in `plan/` (sta
 - Differential pairs, length matching and impedance are not known to it.
 - A clearance asked on one layer only, or between two classes only, is kept everywhere (the largest of
   them): legal, and more room than the rule asks. A track width for one layer is not used, and every net
-  gets the board's via, whatever its class asks.
+  gets the board's via, whatever its class asks (a class that asks another is named in the notes).
+- A net is as wide as its class says. A net that is power by its name and no wider than a signal is
+  named (`astar: thin: ...`); nothing widens it but a net class.
 - The tuning is for the 0.1 mm grid, the only one judged by DRC. By its own count: at 0.05 mm dock lands
   27 of 28 and ub400 takes 14 s; at 0.2 mm ub400 takes 1.3 s but dock and ccb leave fine-pitch pins open.
 - The same five boards on two layers with no planes (ground as track), by its own count: four land

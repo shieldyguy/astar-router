@@ -18,7 +18,7 @@ const USAGE: &str = "usage: astar route IN.kicad_pcb -o OUT.kicad_pcb [--plan PL
        astar scene IN.kicad_pcb [-o SCENE.json]                the board as a scene (docs/scene.md)
        astar lay BOARD.kicad_pcb PLAN.json -o OUT.kicad_pcb    a plan laid on the board it was made for
        astar route SCENE.json PLAN.json [--pitch MM] [--weight W] [--weight-soft W] [--via MM] [--plane-via MM]
-             [--turn MM] [--inner X] [--rip MM] [--rip-drop MM] [--fence MM] [--lane MM] [--toll X] [--pour PADS]
+             [--share MM] [--turn MM] [--inner X] [--rip MM] [--rip-drop MM] [--fence MM] [--lane MM] [--toll X] [--pour PADS]
              [--one-way] [--rounds N] [--pressure X] [--radius MM] [--seconds S] [--skip PASS] [--strict] [-v]
              [--cross X] [--drops NET[,NET]] [--nets NET[,NET]] [--except NET[,NET]]
              [--route-on NET=LAYER[+LAYER][,...]] [--stub MM] [--plane NET=LAYER[+LAYER][,...]] [--ground tracks]
@@ -167,6 +167,7 @@ fn route_command(args: &[String], old_form: bool) -> ! {
             "--pressure" => cfg.pressure = val(&mut i),
             "--via" => cfg.via_mm = val(&mut i),
             "--plane-via" => cfg.plane_via_mm = val(&mut i),
+            "--share" => cfg.share_mm = val(&mut i),
             "--turn" => cfg.turn_mm = val(&mut i),
             "--inner" => cfg.inner_mul = val(&mut i),
             "--rip" => cfg.rip_mm = val(&mut i),

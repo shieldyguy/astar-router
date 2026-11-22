@@ -67,7 +67,7 @@ fn scene_2_loads_with_every_field() {
     assert!(sc.parts.iter().any(|p| p.fixed) && sc.matches[1].by_time && sc.matches[1].target == Some(25.0));
     assert_eq!(sc.groups[0].parts, [0, 3, 4]);
     assert!(sc.nets.iter().skip(1).all(|n| n.in_scope) && sc.parts.iter().all(|p| p.in_scope));
-    assert_eq!(sc.carried_unused().len(), 9);
+    assert_eq!(sc.carried_unused().len(), 8);
 }
 
 #[test]

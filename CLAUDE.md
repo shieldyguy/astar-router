@@ -60,8 +60,10 @@ asked: `git push origin main:release` builds, tests and publishes `build-<sha12>
 
 Read its notes on stderr: it says what it ignored, but the exit code does not change for these.
 
-- **No power sense.** A net is as wide as its class and nothing more; no vias in exposed pads; a class's
-  via size is ignored; nothing warns when a rail is at signal width.
+- **Width is the board's to say.** A net is as wide as its class and nothing more: give rails a net class
+  with a track width. A net that is power by name and at signal width is named (`astar: thin: ...`), not
+  widened. A class's own via size is ignored (every net gets the board's via; the notes say when a class
+  asks another). An exposed pad gets one via in itself, with no paste window over it.
 - **Differential pairs are two plain nets.** No length matching, no impedance.
 - **Custom rules (`.kicad_dru`) with a condition are not read.** Without one, clearance and the least
   track, via, hole and ring are. A rule not read that asks no more than is kept anyway is a note; one

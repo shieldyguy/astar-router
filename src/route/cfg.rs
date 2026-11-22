@@ -12,6 +12,10 @@ pub struct Cfg {
     pub via_mm: f64,
     /// what the via of a plane drop costs, in mm of track (a second pad shares a via nearer than this)
     pub plane_via_mm: f64,
+    /// what it costs a plane drop to end on a via or a pad its net already has, in mm of track. As much
+    /// as a via of its own (`plane_via_mm`): a pad of a plane net gets its own via beside it, and shares
+    /// another's only where that one is nearer than the room for its own
+    pub share_mm: f64,
     /// what a 45 degree bend costs, in mm of track
     pub turn_mm: f64,
     /// how much dearer a track is on an inner layer
@@ -80,6 +84,7 @@ impl Default for Cfg {
             weight_soft: 4.0,
             via_mm: 5.0,
             plane_via_mm: 1.5,
+            share_mm: 1.5,
             turn_mm: 0.2,
             inner_mul: 2.0,
             neck_mm: 4.0,
@@ -125,6 +130,7 @@ impl Cfg {
             ("--weight-soft", self.weight_soft),
             ("--via", self.via_mm),
             ("--plane-via", self.plane_via_mm),
+            ("--share", self.share_mm),
             ("--turn", self.turn_mm),
             ("the neck price", self.neck_mm),
             ("the exit price", self.exit_mm),

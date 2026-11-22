@@ -17,6 +17,21 @@ pub struct Access {
     pub wide: bool,
 }
 
+/// Where a net's plane is, as far as a via into it goes: inside one of its zones (and outside that
+/// zone's cut-outs) by `reach`, and out of every area that bars the plane, by that area's own distance.
+/// A plane no zone draws is the whole layer but for those areas.
+pub(crate) struct PlaneArea {
+    shapes: Vec<(Shape, Vec<Shape>)>,
+    barred: Vec<(Shape, f64)>,
+    reach: f64,
+}
+
+impl PlaneArea {
+    fn holds(&self, px: f64, py: f64) -> bool {
+        (self.shapes.is_empty() || self.shapes.iter().any(|(o, holes)| o.depth(px, py) >= self.reach && holes.iter().all(|h| h.dist(px, py) >= self.reach))) && self.barred.iter().all(|(k, need)| k.dist(px, py) >= *need)
+    }
+}
+
 impl Router {
     pub(crate) fn pad_layers(&self, p: usize) -> Vec<usize> {
         let pad = &self.sc.pads[p];
@@ -80,9 +95,10 @@ impl Router {
 
     /// Where a via of this size may stand as far as fixed copper goes: clear of every pad and fence, its
     /// own net's too. Returns the sites, the nodes too near another hole, and each plane net's sites.
-    fn sites_for(&self, t_via: crate::field::Dist, size: f64, drill: f64) -> (Vec<u64>, Vec<u64>, HashMap<u16, Vec<u64>>) {
+    fn sites_for(&self, t_via: crate::field::Dist, size: f64, drill: f64) -> (Vec<u64>, Vec<u64>, HashMap<u16, Vec<u64>>, HashMap<u16, PlaneArea>) {
         let f = &self.f;
         let mut planes: HashMap<u16, Vec<u64>> = HashMap::new();
+        let mut areas: HashMap<u16, PlaneArea> = HashMap::new();
         let mut via_ok = vec![0u64; f.w * f.h / 64 + 1];
         for y in 0..f.h {
             for x in 0..f.w {
@@ -148,6 +164,7 @@ impl Router {
                     barred.push((Shape::Poly { pts: o.outline.clone(), r: 0.0 }, reach + o.clearance.unwrap_or(0.0).max(self.sc.rules.clearance)));
                 }
             }
+            let area = PlaneArea { shapes, barred, reach };
             let mut sites = vec![0u64; via_ok.len()];
             for y in 0..self.f.h {
                 for x in 0..self.f.w {
@@ -155,25 +172,32 @@ impl Router {
                     if via_ok[i >> 6] & (1 << (i & 63)) == 0 {
                         continue;
                     }
-                    let (px, py) = (self.f.wx(x), self.f.wy(y));
-                    if (shapes.is_empty() || shapes.iter().any(|(o, holes)| o.depth(px, py) >= reach && holes.iter().all(|h| h.dist(px, py) >= reach))) && barred.iter().all(|(k, need)| k.dist(px, py) >= *need) {
+                    if area.holds(self.f.wx(x), self.f.wy(y)) {
                         sites[i >> 6] |= 1 << (i & 63);
                     }
                 }
             }
             planes.insert(ni as u16, sites);
+            areas.insert(ni as u16, area);
         }
-        (via_ok, hole_near, planes)
+        (via_ok, hole_near, planes, areas)
+    }
+
+    /// Does the net's plane reach under this point, far enough in for a via to stand in it? (A net with
+    /// no plane, or one whose plane is the whole layer: yes.)
+    pub(crate) fn plane_holds(&self, net: u16, px: f64, py: f64) -> bool {
+        self.plane_areas.get(&net).map_or(true, |a| a.holds(px, py))
     }
 
     /// The via sites of the class's via, and of the smaller one the board allows where it allows one.
     pub(crate) fn find_via_sites(&mut self) {
-        let (via_ok, hole_near, planes) = self.sites_for(self.t_via, self.sc.rules.via, self.sc.rules.drill);
+        let (via_ok, hole_near, planes, areas) = self.sites_for(self.t_via, self.sc.rules.via, self.sc.rules.drill);
         self.via_ok = via_ok;
         self.hole_near = hole_near;
         self.plane_sites = planes;
+        self.plane_areas = areas;
         if let Some((size, drill)) = self.via_small {
-            let (ok, _, planes) = self.sites_for(self.t_via_s, size, drill);
+            let (ok, _, planes, _) = self.sites_for(self.t_via_s, size, drill);
             self.via_ok_s = ok;
             self.plane_sites_s = planes;
         }

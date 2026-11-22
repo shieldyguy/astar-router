@@ -247,6 +247,7 @@ mod tests {
             rip_cell: 1000,
             flat: true,
             via_cost: 5000,
+            share_cost: 0,
             toll_mul: 3,
             weight256: 256,
             weight256_soft: 256,

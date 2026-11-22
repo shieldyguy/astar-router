@@ -71,6 +71,12 @@ impl Router {
                 return;
             }
         }
+        // an exposed pad (inside its part's ring of pins) goes down by a via in itself: no thin track from
+        // it to a via among the pins
+        if self.ringed(p) && self.drop_in_pad(j) {
+            self.jobs[j].done = true;
+            return;
+        }
         let mut sources = Vec::new();
         self.pad_sources(p, &mut sources);
         // (else it goes down itself, from the pad or from anywhere on that old copper)
@@ -190,11 +196,9 @@ impl Router {
                 if vl != 0 && vl != net {
                     continue;
                 }
-                if let Some(s) = self.plane_sites.get(&net) {
-                    let i = y * self.f.w + x;
-                    if self.sc.nets[net as usize].plane.is_some() && s[i >> 6] & (1 << (i & 63)) == 0 {
-                        continue;
-                    }
+                // (where its plane is: the plane's own sites leave out every pad, this one too)
+                if !self.plane_holds(net, px, py) {
+                    continue;
                 }
                 if !(0..self.f.nl).all(|ll| {
                     let c = &self.f.cells[self.f.idx(ll, y, x)];

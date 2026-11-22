@@ -371,13 +371,14 @@ impl Scene {
             return out;
         }
         // (a class's track width and clearance are its nets'; its via is not used: every net gets the board's)
-        say(self.classes.iter().filter(|c| c.via.is_some() || c.drill.is_some()).count(), "net classes with a via size of their own");
+        let other = |via: Option<f64>, drill: Option<f64>| via.map_or(false, |v| (v - self.rules.via).abs() > 1e-9) || drill.map_or(false, |d| (d - self.rules.drill).abs() > 1e-9);
+        say(self.classes.iter().filter(|c| other(c.via, c.drill)).count(), &format!("net classes that ask a via other than the board's {}/{} (every net gets the board's)", self.rules.via, self.rules.drill));
         say(self.rules.layer_rules.iter().chain(self.classes.iter().flat_map(|c| c.layer_rules.iter())).filter(|r| r.track.is_some()).count(), "track widths for one layer");
         let f = &self.rules.floors;
         // (the floors of track, via, drill and annular ring are used: a neck, the small via)
         say([f.clearance, f.hole_to_hole, f.edge].iter().filter(|v| v.is_some()).count(), "fab floors (of clearance, hole to hole and edge)");
         say(self.stackup.len(), "stackup layers (thickness, dielectric)");
-        say(self.nets.iter().filter(|n| n.via.is_some() || n.drill.is_some()).count(), "nets with a via size of their own");
+        say(self.nets.iter().filter(|n| other(n.via, n.drill)).count(), "nets that ask a via other than the board's");
         say(self.nets.iter().filter(|n| n.impedance.is_some()).count() + self.classes.iter().filter(|c| c.impedance.is_some()).count() + self.pairs.iter().filter(|p| p.impedance.is_some()).count(), "impedance targets");
         say(self.pairs.len(), "differential pairs");
         say(self.matches.len(), "match groups");

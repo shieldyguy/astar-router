@@ -69,6 +69,8 @@ pub struct Router {
     pub(crate) via_ok_s: Vec<u64>,
     pub(crate) plane_sites_s: HashMap<u16, Vec<u64>>,
     pub(crate) plane_sites: HashMap<u16, Vec<u64>>,
+    /// where each plane net's plane is, for a via that stands in a pad of its own (`access::PlaneArea`)
+    pub(crate) plane_areas: HashMap<u16, access::PlaneArea>,
     /// per node, a bit: a via here would stand too near another hole (the hole-to-hole rule)
     pub(crate) hole_near: Vec<u64>,
     /// what never changes about each net's pours (`fill`), for the nets that have one
@@ -631,6 +633,7 @@ impl Router {
             via_ok_s: Vec::new(),
             plane_sites_s: HashMap::new(),
             plane_sites: HashMap::new(),
+            plane_areas: HashMap::new(),
             hole_near: Vec::new(),
             pours: HashMap::new(),
             acc: Vec::new(),

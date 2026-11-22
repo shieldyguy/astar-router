@@ -35,6 +35,23 @@ pub struct Note {
     pub detail: String,
 }
 
+/// Does a net's name say power? (`+5V`, `3V3`, `VBUS`, `VCC_IO`, `/power/VIN`)
+pub fn says_power(name: &str) -> bool {
+    let last = name.rsplit('/').next().unwrap_or(name).to_ascii_uppercase();
+    let b = last.as_bytes();
+    if b.is_empty() {
+        return false;
+    }
+    if b[0] == b'+' || (b[0] == b'-' && b.len() > 1 && b[1].is_ascii_digit()) {
+        return true;
+    }
+    if ["VCC", "VDD", "VIN", "VBUS", "VBAT", "VSYS", "VOUT", "VPP", "VDC", "VAA", "VEE", "VMOT", "AVDD", "DVDD", "AVCC", "PWR"].iter().any(|p| last.starts_with(p)) {
+        return true;
+    }
+    // a voltage in the name: 3V3, 5V, 12V_SW
+    (1..b.len()).any(|i| b[i] == b'V' && b[i - 1].is_ascii_digit() && (i + 1 == b.len() || b[i + 1].is_ascii_digit() || b[i + 1] == b'_'))
+}
+
 impl Router {
     /// The report hook: say something about a net or a place. Notes go into the plan in the order
     /// they were made. A note must be the same for the same input: no seconds, nothing of the machine.
@@ -115,6 +132,20 @@ impl Router {
             let mm: f64 = self.jobs.iter().filter(|j| j.net == n as u16).flat_map(|j| j.tracks.iter()).map(|t| t.pts.windows(2).map(|w| crate::geom::hypot(w[1].0 - w[0].0, w[1].1 - w[0].1)).sum::<f64>()).sum();
             let name = net.name.clone();
             self.note("ground", n as u16, None, format!("{} pads joined by {:.0} mm of track: the ground has no pour and no plane, and is wired as a net (--drops {} is for a block whose pour is its host's)", self.sc.nets[n].pads.len(), mm, name));
+        }
+        // rails at a signal's width: a net whose name says power, routed as track, no wider than the
+        // board's plain track. The width is the board's to say (a net class); what astar can do is say so
+        let thin: Vec<String> = (1..self.sc.nets.len())
+            .filter(|&n| {
+                let net = &self.sc.nets[n];
+                let wired_ground = net.class == crate::scene::Class::Ground && net.pads.len() >= 3;
+                net.wanted() && net.plane.is_none() && !self.pours.contains_key(&(n as u16)) && (says_power(&net.name) || wired_ground) && net.width <= self.sc.rules.track + 1e-9 && self.jobs.iter().any(|j| j.net == n as u16 && !j.tracks.is_empty())
+            })
+            .map(|n| self.sc.nets[n].name.clone())
+            .collect();
+        if !thin.is_empty() {
+            let more = if thin.len() > 8 { format!(" and {} more", thin.len() - 8) } else { String::new() };
+            self.note("thin", 0, None, format!("{} {} power by name and no wider than a signal, {} mm: {}{}. A net class with a track width makes a rail wide", thin.len(), if thin.len() == 1 { "net is" } else { "nets are" }, self.sc.rules.track, thin.iter().take(8).cloned().collect::<Vec<_>>().join(", "), more));
         }
         // the copper the router drew for a net: the ground's where the board drew none, and what the run named
         for &(n, l) in &self.poured.clone() {

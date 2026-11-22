@@ -79,6 +79,7 @@ impl Router {
             rip_cell: (ask.rip_mm * price * 1000.0 * self.cfg.pitch / 0.5).min(4.0e6) as u32,
             flat: insist,
             via_cost: (ask.via_mm * 1000.0) as u32,
+            share_cost: (self.cfg.share_mm * 1000.0) as u32,
             toll_mul: ((self.sc.nets[net as usize].width / self.sc.rules.track).round() as u32).clamp(1, 8),
             weight256: (self.cfg.weight * 256.0).round() as u64,
             weight256_soft: (self.cfg.weight_soft * 256.0).round() as u64,

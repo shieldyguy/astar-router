@@ -94,6 +94,8 @@ pub struct Query<'a> {
     /// charge that price flat, not more where nets have clashed before
     pub flat: bool,
     pub via_cost: u32,
+    /// what a plane drop pays to end on a via or a pad its net already has, in place of a via of its own
+    pub share_cost: u32,
     /// how many default track widths this net is wide: what it pays of a price by the width
     /// (`cost::Price::per_width`)
     pub toll_mul: u32,
@@ -546,7 +548,7 @@ impl Search {
                     continue;
                 }
             }
-            let vc = if own { 0 } else { q.via_cost.saturating_add(pen) };
+            let vc = if !own { q.via_cost.saturating_add(pen) } else if plane.is_some() { q.share_cost } else { 0 };
             let ng = e.g.saturating_add(vc);
             let par = PAR_VIA + l as u8;
             let put_aside = crosses && !soft;

@@ -67,7 +67,7 @@ impl Router {
 
     /// Is this a surface pad inside a ring of its part's other pads (the exposed pad of a QFN)? Such a pad
     /// cannot be left on its own layer.
-    fn ringed(&self, p: usize) -> bool {
+    pub(crate) fn ringed(&self, p: usize) -> bool {
         let pad = &self.sc.pads[p];
         if pad.tht {
             return false;
