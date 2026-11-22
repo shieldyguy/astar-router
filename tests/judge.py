@@ -429,6 +429,11 @@ def krt(bare, routed, cache, tmp, timeout=180):
     return out
 
 
+def shown(name):
+    """A net's name as KiCad's report writes it: the board file's {slash} is /."""
+    return name.replace("{slash}", "/").replace("{colon}", ":").replace("{backslash}", "\\")
+
+
 def routable_nets(scene):
     """the scene's nets with two or more pads: the nets a router is asked to join"""
     c = collections.Counter(p["net"] for p in scene["pads"] if p.get("net"))
@@ -461,8 +466,8 @@ def judge(scene_path, plan_path, bare, cache=None, keep=None, name=None, timeout
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     nets = routable_nets(scene)
-    open_nets = [n for n in nets if now["unconnected_by_net"].get(n)]
-    outside = sorted(set(now["unconnected_by_net"]) - set(nets))
+    open_nets = [n for n in nets if now["unconnected_by_net"].get(shown(n))]
+    outside = sorted(set(now["unconnected_by_net"]) - {shown(n) for n in nets})
     # errors that only say a track reached a pad its own footprint draws copper over: not the router's
     own = {tuple(x) for x in before.get("art_pads", [])}
     waived = collections.Counter()

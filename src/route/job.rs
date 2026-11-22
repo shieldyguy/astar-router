@@ -26,9 +26,14 @@ impl Track {
         for i in 1..self.pts.len() {
             match self.arcs.get(i).copied().flatten() {
                 Some((s, m, e)) => {
-                    if hypot(s.0 - cur.0, s.1 - cur.1) > 1e-6 {
+                    // (each piece begins at the very point the last ended on: an arc a nanometre off the
+                    // end of the arc before it is not joined to it, as KiCad counts)
+                    let s = if hypot(s.0 - cur.0, s.1 - cur.1) > 1e-6 {
                         out.push(Piece::Line(cur, s));
-                    }
+                        s
+                    } else {
+                        cur
+                    };
                     out.push(Piece::Arc(s, m, e));
                     cur = e;
                 }
@@ -135,5 +140,24 @@ impl Router {
         self.jobs.push(job);
         self.deps.push(Vec::new());
         j
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Piece, Track};
+
+    /// Two arcs that meet: the second begins on the very point the first ended on, though its own start
+    /// was worked out a nanometre away.
+    #[test]
+    fn every_piece_of_a_track_begins_where_the_last_ended() {
+        let a = ((1.0, 0.0), (1.3, 0.1), (1.5, 0.5));
+        let b = ((1.500000001, 0.5), (1.7, 0.9), (2.0, 1.0));
+        let t = Track { layer: 0, width: 0.2, pts: vec![(0.0, 0.0), (1.5, 0.0), (1.5, 1.0), (3.0, 1.0)], arcs: vec![None, Some(a), Some(b), None] };
+        let ends: Vec<((f64, f64), (f64, f64))> = t.pieces().iter().map(|p| match p { Piece::Line(s, e) => (*s, *e), Piece::Arc(s, _, e) => (*s, *e) }).collect();
+        assert_eq!(ends.len(), 4);
+        for w in ends.windows(2) {
+            assert_eq!(w[0].1, w[1].0);
+        }
     }
 }
