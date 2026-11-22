@@ -148,7 +148,8 @@ impl Drawn {
             Geo::Line(a, c) => vec![mmp(*a), mmp(*c)],
             Geo::Arc(s, m, e) => arc_pts(mmp(*s), mmp(*m), mmp(*e), 0.002),
             Geo::Circle(c, r) => {
-                let (c, r) = (mmp(*c), mm(*r));
+                // (a micron more: the many-sided shape holds the circle, its sides never inside the rim)
+                let (c, r) = (mmp(*c), mm(*r) + 0.001);
                 let mut p = arc_pts((c.0 + r, c.1), (c.0, c.1 + r), (c.0 - r, c.1), 0.001);
                 p.pop();
                 p.extend(arc_pts((c.0 - r, c.1), (c.0, c.1 - r), (c.0 + r, c.1), 0.001));

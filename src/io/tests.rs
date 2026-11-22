@@ -84,6 +84,29 @@ fn a_mask_opening_is_as_wide_as_its_stroke() {
     assert!(!covers(9.06, 7.5), "and no further");
 }
 
+/// A pad drawn with a circle is read as a many-sided shape that holds the circle: no side of it lies
+/// inside the rim, so what is clear of the shape is clear of the pad.
+#[test]
+fn a_pad_drawn_with_a_circle_is_read_no_smaller_than_it_is() {
+    let text = std::fs::read_to_string(fixture("tiny.kicad_pcb")).unwrap();
+    let rect = "(pad \"2\" smd rect\n\t\t\t(at 0.8 0 90)\n\t\t\t(size 0.8 1)\n\t\t\t(layers \"F.Cu\" \"F.Mask\" \"F.Paste\")\n\t\t\t(net \"GND\")";
+    let custom = "(pad \"2\" smd custom\n\t\t\t(at 0.8 0 90)\n\t\t\t(size 0.3 0.3)\n\t\t\t(layers \"F.Cu\" \"F.Mask\" \"F.Paste\")\n\t\t\t(options (clearance outline) (anchor rect))\n\t\t\t(primitives (gr_circle (center 0 0) (end 0.5 0) (width 0) (fill yes)))\n\t\t\t(net \"GND\")";
+    assert!(text.contains(rect));
+    let scene = reread(&text.replace(rect, custom), "circle");
+    let pads = scene.get("pads").arr();
+    let pad = pads.iter().find(|p| p.get("net").s() == Some("GND") && !p.get("tht").b()).unwrap();
+    let poly: Vec<Vec<f64>> = pad.get("shape").get("poly").arr().iter().map(|p| p.nums()).collect();
+    assert!(poly.len() > 20, "{} sides", poly.len());
+    let (x0, x1) = poly.iter().fold((f64::MAX, f64::MIN), |b, p| (b.0.min(p[0]), b.1.max(p[0])));
+    let (y0, y1) = poly.iter().fold((f64::MAX, f64::MIN), |b, p| (b.0.min(p[1]), b.1.max(p[1])));
+    let c = ((x0 + x1) / 2.0, (y0 + y1) / 2.0);
+    for k in 0..poly.len() {
+        let (a, b) = (&poly[k], &poly[(k + 1) % poly.len()]);
+        let m = ((a[0] + b[0]) / 2.0 - c.0).hypot((a[1] + b[1]) / 2.0 - c.1);
+        assert!(m >= 0.5 - 1e-9 && m < 0.502, "the middle of a side is {} mm from the middle of a circle of 0.5", m);
+    }
+}
+
 /// A line on the Margin layer is an edge to KiCad's edge rule: no copper within the edge clearance of it,
 /// on any layer. Here it stands across the way both nets would go, and they go round its ends.
 #[test]
