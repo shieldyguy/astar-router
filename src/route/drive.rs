@@ -27,15 +27,16 @@ fn on(cfg: &Cfg, i: usize) -> bool {
 
 /// One board through the plan passes and the route. `limit`, `progress`: see `Router`.
 ///
-/// How a pad is left and which layer a pour is crossed on are matters of style, and style does not cost
-/// a net: a board that stays open with the style rules on (`passes::exits`, `passes::cross`) is routed
+/// How a pad is left, which layer a pour is crossed on and whether a pair runs side by side are matters
+/// of style, and style does not cost a net: a board that stays open with the style rules on
+/// (`passes::exits`, `passes::cross`, `passes::pairs`) is routed
 /// once more without them, in what is left of the time, and that board is kept when fewer of its nets
 /// are open (`Router::sides` then says how many the rules had left open).
 /// Only when a net is open for want of room among the others: a net the board itself walls in
 /// (`Job::walled`) is open either way, and a board with none but such nets is routed once. Nor is a
 /// board whose time ran out routed again.
 fn board(sc: Scene, cfg: &Cfg, poured: Vec<(u16, usize)>, limit: Option<Arc<AtomicU64>>, progress: Option<Arc<AtomicU64>>) -> Result<Router, String> {
-    const STYLE: [&str; 2] = ["exits", "cross"];
+    const STYLE: [&str; 3] = ["exits", "cross", "pairs"];
     let t = Instant::now();
     let r = board_once(sc.clone(), cfg, poured.clone(), limit.clone(), progress.clone())?;
     let open = r.open_nets().len();
@@ -251,7 +252,7 @@ pub fn route(mut sc: Scene, cfg: &Cfg) -> Result<Routed, Error> {
     super::ask(&mut sc, cfg);
     let mut out = routed(sc, cfg)?;
     if let Some(open) = out.router.sides {
-        let how = format!("the style rules are left out (a pad left by its end, a pour not crossed for nothing): with them {} nets stayed open", open);
+        let how = format!("the style rules are left out (a pad left by its end, a pour not crossed for nothing, a pair side by side): with them {} nets stayed open", open);
         out.note = if out.note.is_empty() { how } else { format!("{}; {}", out.note, how) };
     }
     let r = &mut out.router;

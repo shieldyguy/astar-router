@@ -133,7 +133,10 @@ pub(crate) fn plan(sc: &mut Scene, skip: bool) -> (Vec<Duo>, Vec<(u16, String)>)
             }
         };
         let centre = sc.nets.len() as u16;
-        sc.nets.push(Net::plain(format!("{} (centre line)", sc.pairs[i].name), Class::Signal, width, clr + (width + gap) / 2.0 + 0.01 + (width - narrow) / 2.0));
+        let mut line = Net::plain(format!("{} (centre line)", sc.pairs[i].name), Class::Signal, width, clr + (width + gap) / 2.0 + 0.01 + (width - narrow) / 2.0);
+        // (kept to the pair's layer: its search never looks on another)
+        line.keep = 1 << layer;
+        sc.nets.push(line);
         duos.push(Duo { name: sc.pairs[i].name.clone(), p: p as u16, n: n as u16, centre, layer, width, gap, ends: e, fails: 0, off: false, said: String::new() });
     }
     (duos, not)
@@ -251,6 +254,10 @@ impl Router {
         self.route_tree(pj);
         self.route_tree(nj);
         if !laid {
+            // no room at its pads, or no way at all: given up at once. Not laid for the copper that stands
+            // today: given up the third time
+            self.duos[di].fails += 1;
+            self.duos[di].off |= self.duos[di].fails >= 3;
             return;
         }
         for (a, b) in [(pj, nj), (nj, pj)] {
@@ -323,6 +330,7 @@ impl Router {
         let (from, to) = (near(ma), near(mb));
         if from.is_empty() || to.is_empty() {
             self.duos[di].said = two("there is no room for the two tracks side by side near its pads".into());
+            self.duos[di].off = true;
             return false;
         }
         // (a start further from the pads costs three times its distance: the run begins as near as it can)
@@ -340,17 +348,15 @@ impl Router {
         let cells = (self.f.w * self.f.h) as u64;
         let what = if self.cfg.verbose { format!("pair {}", self.duos[di].name) } else { String::new() };
         let ask = Ask { net, sources, tbox, tlayers: 1 << layer, plane_goal: None, own_vias: Vec::new(), own_pads: Vec::new(), via_mm: 1.0e4, rip_mm: self.cfg.rip_mm, hard: 30_000 + cells / 40, cap: 400_000 + cells / 4, shut: false, what };
-        let found = self.solve(&ask);
+        // where the board itself leaves the two tracks no way there is nothing to search for
+        let found = if self.walled_in(&ask) { None } else { self.solve(&ask) };
         self.search.clear_targets();
         let on = self.sc.layers[layer].clone();
         let Some((path, may_clash)) = found else {
             self.duos[di].said = two(format!("the two tracks side by side find no way on {}", on));
+            self.duos[di].off = true;
             return false;
         };
-        if path.iter().any(|q| q.0 as usize != layer) {
-            self.duos[di].said = two(format!("the two tracks side by side find no way that stays on {}", on));
-            return false;
-        }
         // what the line runs through is the pair's clash, noted on the lead
         let (cells_before, pairs_before) = (self.jobs[pj].clash_cells.len(), self.pairs.len());
         if may_clash {

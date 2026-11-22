@@ -191,7 +191,9 @@ every run.
    pads are on both sides) is routed as two plain nets, and the plan says which and why (`pair`,
    `astar: pair: ...` on stderr); a laid pair's note gives its length side by side and how much
    longer one half is. The two halves are not made the same length. `--skip pairs` routes every
-   pair as two nets. Of the 13 pairs on the house, fixture and bench boards 7 are laid side by
+   pair as two nets. A pair is style, as a pad left by its end is: a board that stays open with its
+   pairs side by side is routed once more with every pair as two nets, and that board is kept when
+   fewer of its nets are open. Of the 13 pairs on the house, fixture and bench boards 7 are laid side by
    side, with the same nets joined and the same verdict from KiCad as before.
    **Some nets only** (`--nets`, `--except`, the scene's `scope`). The nets asked for are routed; the
    others get no copper and are not counted as open. They are still on the board: their pads and their

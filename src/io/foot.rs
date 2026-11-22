@@ -145,9 +145,17 @@ impl Board {
                 let f = Frame { at: c, deg };
                 let prims: Vec<Drawn> = d.find(pad, "primitives").map_or(Vec::new(), |p| d.lists(p).filter_map(|k| drawn(self, k, &f)).collect());
                 let round = d.find(pad, "options").and_then(|o| d.str_of(o, "anchor")).as_deref() == Some("circle");
-                // (a round anchor as the 24 sides that hold its circle)
-                let ra = wf / 2.0 / (std::f64::consts::PI / 24.0).cos();
-                let anchor = if round { (0..24).map(|k| (k as f64 * std::f64::consts::TAU / 24.0).sin_cos()).map(|(sn, cs)| (ra * cs, ra * sn)).collect() } else { rect_local(wf, hf) };
+                // (a round anchor as the many sides that hold its circle: a micron more, no side inside the rim)
+                let ra = wf / 2.0 + 1000.0;
+                let anchor = if round {
+                    let mut a = super::num::arc_pts((ra, 0.0), (0.0, ra), (-ra, 0.0), 1000.0);
+                    a.pop();
+                    a.extend(super::num::arc_pts((-ra, 0.0), (0.0, -ra), (ra, 0.0), 1000.0));
+                    a.pop();
+                    a
+                } else {
+                    rect_local(wf, hf)
+                };
                 let anchor = corners(c, deg, &anchor);
                 if let [Drawn { geo: Geo::Poly(p), width, .. }] = prims.as_slice() {
                     let (cx, cy) = (mm(c.0), mm(c.1));
