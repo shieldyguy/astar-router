@@ -61,4 +61,7 @@ pub mod exit {
     /// a plan was written, and astar's own check finds fault with it: copper that breaks a rule, or a
     /// net the plan calls joined that is not. A fault in astar; the findings are printed.
     pub const FAULT: i32 = 4;
+    /// every net joined, but KiCad may yet find fault where astar did not look: a custom rule that was not
+    /// read and may ask more than was kept, a short the board came with. The lines say which.
+    pub const UNSURE: i32 = 5;
 }

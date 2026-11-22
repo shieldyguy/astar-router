@@ -30,6 +30,48 @@ pub struct Custom {
     pub track: Option<f64>,
 }
 
+/// What of a custom rule was not read: the constraints, each with its `min` when that is all it gives
+/// (a least value can be held against what the router keeps anyway: `Unread::may_ask_more`).
+#[derive(Clone)]
+pub struct Unread {
+    pub name: String,
+    pub asks: Vec<(String, Option<f64>)>,
+}
+
+/// What the router keeps whatever the rules: the least clearance between nets, the narrowest track, the
+/// smallest via, drill and annular ring.
+pub struct Kept {
+    pub clearance: f64,
+    pub track: f64,
+    pub via: f64,
+    pub drill: f64,
+    pub annular: f64,
+}
+
+impl Unread {
+    /// Can KiCad hold the routed board to more than the router kept, by this rule? Not when all it
+    /// gives is a least value the router keeps everywhere, or when it is about no copper a router lays.
+    pub fn may_ask_more(&self, k: &Kept) -> bool {
+        self.asks.iter().any(|(kind, min)| {
+            let kept = match kind.as_str() {
+                "clearance" => k.clearance,
+                "track_width" => k.track,
+                "via_diameter" => k.via,
+                "hole_size" => k.drill,
+                "annular_width" => k.annular,
+                "silk_clearance" | "courtyard_clearance" | "text_height" | "text_thickness" | "assertion" => return false,
+                _ => return true,
+            };
+            min.map_or(true, |m| m > kept + 1e-9)
+        })
+    }
+    /// The rule and what it asks, for a note: `"name" (clearance 0.4)`.
+    pub fn said(&self) -> String {
+        let asks: Vec<String> = self.asks.iter().map(|(k, m)| m.map_or(k.clone(), |m| format!("{} {}", k, m))).collect();
+        format!("\"{}\" ({})", self.name, asks.join(", "))
+    }
+}
+
 pub struct Project {
     /// the board's minimums, mm: KiCad's defaults where the project does not say
     pub min_clearance: f64,
@@ -50,9 +92,12 @@ pub struct Project {
     pub dru_edge: f64,
     pub dru_hole: f64,
     pub dru_hole_to_hole: f64,
+    /// the most a custom rule about pours alone asks between a pour and other nets (KiCad's filler keeps
+    /// it; the pour model must fill no nearer)
+    pub dru_zone: f64,
     pub custom: Vec<Custom>,
-    /// the custom rules that were not read, by name
-    pub unread: Vec<String>,
+    /// the custom rules, or the parts of them, that were not read
+    pub unread: Vec<Unread>,
     pub found_pro: bool,
     pub found_dru: bool,
 }
@@ -116,6 +161,7 @@ impl Project {
             dru_edge: 0.0,
             dru_hole: 0.0,
             dru_hole_to_hole: 0.0,
+            dru_zone: 0.0,
             custom: Vec::new(),
             unread: Vec::new(),
             found_pro: false,
@@ -232,30 +278,40 @@ impl Project {
                     }
                 }
             }
-            let mut read = false;
+            // a rule about pours alone (every way to match it names a zone): KiCad's filler keeps it when
+            // it fills, and no track can break it
+            let zones_only = cond.as_ref().map_or(false, |c| c.split("||").all(|alt| { let t: String = alt.chars().filter(|ch| !ch.is_whitespace()).collect(); t.contains("A.Type=='Zone'") || t.contains("B.Type=='Zone'") }));
+            // a rule that holds everywhere, with nothing but a least value: the board's own minimum
+            let everywhere = cond.is_none() && layer.is_none();
+            let mut asks: Vec<(String, Option<f64>)> = Vec::new();
             for c in d.all(rule, "constraint") {
                 let kind = d.arg_str(c, 0).unwrap_or_default().into_owned();
                 let val = |k: &str| d.str_of(c, k).and_then(|v| length(&v));
+                let least = if val("max").is_none() && val("opt").is_none() { val("min") } else { None };
                 match kind.as_str() {
                     // the most any rule asks, whatever it asks it of: the router keeps that from everything
                     "edge_clearance" => self.dru_edge = self.dru_edge.max(val("min").unwrap_or(0.0)),
                     "hole_clearance" => self.dru_hole = self.dru_hole.max(val("min").unwrap_or(0.0)),
                     "hole_to_hole" => self.dru_hole_to_hole = self.dru_hole_to_hole.max(val("min").unwrap_or(0.0)),
+                    "clearance" if zones_only => self.dru_zone = self.dru_zone.max(val("min").unwrap_or(0.0)),
+                    "track_width" if everywhere && least.is_some() => self.min_track = self.min_track.max(least.unwrap()),
+                    "via_diameter" if everywhere && least.is_some() => self.min_via = self.min_via.max(least.unwrap()),
+                    "hole_size" if everywhere && least.is_some() => self.min_drill = self.min_drill.max(least.unwrap()),
+                    "annular_width" if everywhere && least.is_some() => self.min_annular = self.min_annular.max(least.unwrap()),
                     "clearance" | "track_width" if plain && classes.len() <= 2 => {
                         let (clearance, track) = if kind == "clearance" { (val("min"), None) } else { (None, val("opt").or(val("min"))) };
                         // a width for a class is the class's business, not a layer's
                         if (clearance.is_some() || track.is_some()) && (track.is_none() || classes.is_empty()) {
                             self.custom.push(Custom { name: name.clone(), layer: layer.clone(), classes: classes.clone(), clearance, track });
                         } else {
-                            continue;
+                            asks.push((kind, least));
                         }
                     }
-                    _ => continue,
+                    _ => asks.push((kind, least)),
                 }
-                read = true;
             }
-            if !read {
-                self.unread.push(name);
+            if !asks.is_empty() {
+                self.unread.push(Unread { name, asks });
             }
         }
         Ok(())
@@ -340,7 +396,14 @@ mod tests {
         assert_eq!(p.custom.len(), 2);
         assert_eq!(p.custom[1].classes, vec!["HV", "Power"]);
         assert!((p.custom[1].clearance.unwrap() - 0.2032).abs() < 1e-12);
-        assert_eq!((p.dru_edge, p.unread.clone()), (0.4, vec!["silk".to_string()]));
+        assert_eq!((p.dru_edge, p.unread.len(), p.unread[0].name.as_str()), (0.4, 1, "silk"));
+        // what was not read and can matter: a least value above what is kept, and what gives no least value
+        let kept = Kept { clearance: 0.15, track: 0.2, via: 0.5, drill: 0.3, annular: 0.1 };
+        assert!(!p.unread[0].may_ask_more(&kept), "a rule about silk is no router's business");
+        p.read_dru("(version 1)\n(rule u1 (condition \"A.memberOfFootprint('U1')\") (constraint clearance (min 0.127mm)))\n(rule hv (condition \"A.NetName == 'HV'\") (constraint clearance (min 0.4mm)))\n(rule len (condition \"A.NetName == 'CLK'\") (constraint length (min 40mm) (max 45mm)))\n(rule w (constraint track_width (min 0.25mm)))\n(rule v (constraint via_diameter (min 0.7mm)))\n(rule ww (condition \"A.NetName == 'D'\") (constraint track_width (min 0.3mm) (max 0.3mm)))\n".into()).unwrap();
+        let asks: Vec<(&str, bool)> = p.unread[1..].iter().map(|u| (u.name.as_str(), u.may_ask_more(&kept))).collect();
+        assert_eq!(asks, vec![("u1", false), ("hv", true), ("len", true), ("ww", true)]);
+        assert_eq!((p.min_track, p.min_via), (0.25, 0.7), "a least value that holds everywhere is the board's minimum");
         let _ = both;
     }
 }

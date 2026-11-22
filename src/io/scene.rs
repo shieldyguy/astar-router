@@ -14,6 +14,8 @@ pub struct Read {
     pub scene: J,
     pub board: Board,
     pub notes: Vec<String>,
+    /// what the board asks that was not read and KiCad may hold the routed board to (`exit::UNSURE`)
+    pub doubts: Vec<String>,
 }
 
 /// Does a net's name say ground? (`GND`, `/power/GND`, `GNDA`, `AGND`, `VSS`)
@@ -203,7 +205,7 @@ pub fn from_text(text: String, mut pro: Project, file: &str) -> Result<Read, Str
         }
         if class_ix[i] != 0 {
             kv.push(("class", s(&c.name)));
-            opt(&mut kv, "width", c.track.filter(|t| *t != track));
+            opt(&mut kv, "width", c.track.map(|t| t.max(pro.min_track)).filter(|t| *t != track));
             opt(&mut kv, "clearance", c.clearance.filter(|v| *v > clearance + 1e-9));
             opt(&mut kv, "via", c.via.filter(|v| *v != via));
             opt(&mut kv, "drill", c.drill.filter(|v| *v != drill));
@@ -277,12 +279,20 @@ pub fn from_text(text: String, mut pro: Project, file: &str) -> Result<Read, Str
                     class_pairs.push(obj(vec![("a", s(&r.classes[0])), ("b", s(o)), ("clearance", n(r.clearance.unwrap()))]));
                 }
             }
-            _ => unread.push(r.name.clone()),
+            _ => unread.push(super::project::Unread { name: r.name.clone(), asks: r.clearance.map(|v| ("clearance".to_string(), Some(v))).into_iter().chain(r.track.map(|v| ("track_width".to_string(), Some(v)))).collect() }),
         }
     }
-    if !unread.is_empty() {
-        let more = if unread.len() > 12 { format!(" and {} more", unread.len() - 12) } else { String::new() };
-        b.note(format!("{} custom rules of the .kicad_dru are not read: {}{}", unread.len(), unread.iter().take(12).cloned().collect::<Vec<_>>().join("; "), more));
+    // a rule that was not read and may ask more than the router keeps anyway is a doubt about the routed
+    // board, not a note: KiCad will hold the board to it
+    let narrowest = pro.classes.iter().filter_map(|c| c.track).fold(track, f64::min).max(pro.min_track).min(if pro.min_track > 0.0 { pro.min_track } else { f64::MAX });
+    let kept = super::project::Kept { clearance, track: narrowest, via: pro.min_via.min(via), drill: pro.min_drill.min(drill), annular: pro.min_annular.min((via - drill) / 2.0) };
+    let (more, less): (Vec<_>, Vec<_>) = unread.iter().partition(|u| u.may_ask_more(&kept));
+    let list = |v: &[&super::project::Unread]| format!("{}{}", v.iter().take(12).map(|u| u.said()).collect::<Vec<_>>().join("; "), if v.len() > 12 { format!(" and {} more", v.len() - 12) } else { String::new() });
+    if !less.is_empty() {
+        b.note(format!("{} custom rules of the .kicad_dru are not read; they ask no more than is kept anyway: {}", less.len(), list(&less)));
+    }
+    if !more.is_empty() {
+        b.doubt(format!("{} custom rules of the .kicad_dru are not read, and may ask more than astar keeps: {}", more.len(), list(&more)));
     }
     let odd = pro.odd_patterns(&all);
     if !odd.is_empty() {
@@ -350,8 +360,23 @@ pub fn from_text(text: String, mut pro: Project, file: &str) -> Result<Read, Str
     tracks.extend(feet.tracks);
     let mut zones = rest.zones;
     zones.extend(feet.zones);
+    // a custom rule about pours alone: every pour keeps at least that from other nets
+    if pro.dru_zone > 0.0 {
+        for z in zones.iter_mut() {
+            if let J::Obj(kv) = z {
+                match kv.iter_mut().find(|(k, _)| k == "clearance") {
+                    Some((_, J::Num(c))) => *c = c.max(pro.dru_zone),
+                    _ => kv.push(("clearance".to_string(), n(pro.dru_zone))),
+                }
+            }
+        }
+    }
     let notes = b.notes.clone();
     let mut source = vec![("board", s(file)), ("format", n(b.version as f64)), ("read_by", s("astar")), ("notes", J::Arr(notes.iter().map(|x| s(x)).collect()))];
+    let doubts = b.doubts.clone();
+    if !doubts.is_empty() {
+        source.push(("doubts", J::Arr(doubts.iter().map(|x| s(x)).collect())));
+    }
     if !feet.castellated.is_empty() {
         source.push(("castellated", J::Arr(feet.castellated)));
     }
@@ -376,7 +401,7 @@ pub fn from_text(text: String, mut pro: Project, file: &str) -> Result<Read, Str
         ("pairs", J::Arr(pairs)),
         ("groups", J::Arr(rest.groups)),
     ]);
-    Ok(Read { scene, board: b, notes })
+    Ok(Read { scene, board: b, notes, doubts })
 }
 
 #[cfg(test)]

@@ -186,6 +186,11 @@ pub fn lines(r: &Router, note: &str, read_s: f64, total_s: f64, verbose: bool) -
     if opens.len() > 12 {
         out.push(format!("astar: open: and {} more nets (the plan's notes say which, and why)", opens.len() - 12));
     }
+    // what KiCad will find and astar could not help
+    for n in r.notes.iter().filter(|n| n.kind == "short") {
+        let at = n.at.map_or(String::new(), |a| format!(" at ({:.2}, {:.2})", a.0, a.1));
+        out.push(format!("astar: SHORT: {}{}: {}", r.sc.nets[n.net as usize].name, at, n.detail));
+    }
     if verbose {
         out.push(format!("  passes, s: {}", r.clock.lines().iter().map(|(name, s)| format!("{} {:.3}", name, s)).collect::<Vec<_>>().join(", ")));
         if !r.costs.terms.is_empty() {

@@ -19,6 +19,8 @@ pub struct Board {
     net_names: HashMap<i64, String>,
     /// what the reader has to say about the board: what it could not read, what it made up
     pub notes: Vec<String>,
+    /// what the board asks that was not read and KiCad may hold the routed board to
+    pub doubts: Vec<String>,
 }
 
 fn layer_rank(name: &str) -> i64 {
@@ -65,9 +67,14 @@ impl Board {
                 net_names.insert(id as i64, name.into_owned());
             }
         }
-        Ok(Board { doc, root, version, copper, canon, net_names, notes: Vec::new() })
+        Ok(Board { doc, root, version, copper, canon, net_names, notes: Vec::new(), doubts: Vec::new() })
     }
 
+    pub fn doubt(&mut self, what: String) {
+        if !self.doubts.contains(&what) {
+            self.doubts.push(what);
+        }
+    }
     pub fn note(&mut self, what: String) {
         if !self.notes.contains(&what) {
             self.notes.push(what);

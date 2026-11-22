@@ -21,7 +21,9 @@ asked: `git push origin main:release` builds, tests and publishes `build-<sha12>
   net that is not yet joined, keeps copper the board already has, and writes OUT with the project files
   copied beside it. A few seconds at most on the boards it is used for.
 - Exit 0 every net joined, 1 nets open (`astar: open: NET: why` lines say which), 2 the input could not
-  be read, 3 a width narrowed under `--strict`, 4 astar's own check found fault with its plan.
+  be read, 3 a width narrowed under `--strict`, 4 astar's own check found fault with its plan, 5 every net
+  joined but KiCad will find fault astar could not help: a custom rule it did not read that may ask more
+  than it kept (`astar: NOT HELD TO: ...`), a short the board came with (`astar: SHORT: ...`).
 - The folder OUT goes in must exist already (exit 2 says so). Write OUT somewhere new, not over IN.
 - `astar` with no arguments is the usage; `astar --passes` the passes in order.
 - **Refill and judge before you believe it.** astar does not fill zones: a plane it pours has no fill in
@@ -57,8 +59,9 @@ Read its notes on stderr: it says what it ignored, but the exit code does not ch
 - **No power sense.** A net is as wide as its class and nothing more; no vias in exposed pads; a class's
   via size is ignored; nothing warns when a rail is at signal width.
 - **Differential pairs are two plain nets.** No length matching, no impedance.
-- **Custom rules (`.kicad_dru`) are mostly not read**: anything with a condition, and width, via and hole
-  rules. Clearance rules without a condition are read.
+- **Custom rules (`.kicad_dru`) with a condition are not read.** Without one, clearance and the least
+  track, via, hole and ring are. A rule not read that asks no more than is kept anyway is a note; one
+  that may ask more makes the run exit 5.
 - **Nothing is lifted.** It keeps the copper a board has and never moves it, so old copper stays where
   a part has since moved.
 - **A small fault KiCad calls an error**: a thermal relief can be left with one spoke.

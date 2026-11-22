@@ -113,3 +113,28 @@ fn copper_that_touches_is_joined_as_kicad_counts_it() {
     std::fs::remove_dir_all(&dir).ok();
     assert_eq!(checked.status.code(), Some(0), "{}{}", String::from_utf8_lossy(&checked.stdout), String::from_utf8_lossy(&checked.stderr));
 }
+
+/// A pad that lies on old copper of another net is a short the board came with. astar moves no old
+/// copper: it says so, and the run is not called whole (exit 5, `exit::UNSURE`).
+#[test]
+fn a_short_the_board_came_with_is_said_and_the_run_is_not_whole() {
+    let text = std::fs::read_to_string(scene()).unwrap();
+    // a track of A over B's pad RB.1 at (2, 6)
+    let shorted = text.replacen("\"tracks\": [", "\"tracks\": [{\"net\": \"A\", \"layer\": \"F.Cu\", \"width\": 0.2, \"path\": [{\"line\": [2, 3.03, 2, 6]}]}, ", 1);
+    assert_ne!(text, shorted);
+    let run = |scene: &str| {
+        let dir = std::env::temp_dir().join(format!("astar-short-test-{}-{}", std::process::id(), scene.len()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("scene.json");
+        std::fs::write(&file, scene).unwrap();
+        let routed = route(Scene::load(file.to_str().unwrap()).unwrap(), &Cfg::default()).unwrap();
+        std::fs::remove_dir_all(&dir).ok();
+        let plan = astar::json::parse(&routed.plan()).unwrap();
+        let shorts: Vec<String> = plan.get("notes").arr().iter().filter(|n| n.get("kind").s() == Some("short")).map(|n| n.get("detail").s().unwrap().to_string()).collect();
+        (routed.exit_code(false), shorts)
+    };
+    assert_eq!(run(&text), (astar::exit::WHOLE, vec![]));
+    let (code, shorts) = run(&shorted);
+    assert_eq!(code, astar::exit::UNSURE);
+    assert!(shorts.len() == 1 && shorts[0].contains("RB.1 lies on copper of A"), "{:?}", shorts);
+}

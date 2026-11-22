@@ -202,6 +202,8 @@ impl Routed {
             crate::exit::OPEN
         } else if strict && self.router.notes.iter().any(|n| n.kind == "narrowed") {
             crate::exit::NARROWED
+        } else if self.router.notes.iter().any(|n| n.kind == "short") {
+            crate::exit::UNSURE
         } else {
             crate::exit::WHOLE
         }

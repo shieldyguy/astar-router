@@ -80,6 +80,11 @@ impl Router {
             self.note("not asked", 0, None, format!("{} nets were not asked for and get no copper ({}): their pads, their copper and the way out of their pins are kept clear of; whether they are joined is not looked at", left.len(), names));
         }
         // pads that lie on each other are joined as they are
+        for &(p, other, at) in &self.old.shorts.clone() {
+            let (pad, name) = (&self.sc.pads[p], self.sc.nets[other as usize].name.clone());
+            let text = format!("the board came with a short: {}.{} lies on copper of {}. astar moves nothing the board came with; KiCad will call it a short", pad.ref_, pad.num, name);
+            self.note("short", pad.net, Some(at), text);
+        }
         if self.old.pad_isles > 0 {
             let pads: usize = self.old.isles.iter().filter(|i| !i.copper).map(|i| i.pads.len()).sum();
             self.note("touching", 0, None, format!("{} pads lie on another pad of their net in {} places: they are joined as they are, and get no track between them", pads, self.old.pad_isles));

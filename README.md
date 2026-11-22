@@ -12,7 +12,9 @@ A library and one binary over it, Rust, no dependencies. A scene goes in, a plan
 It exits 0 when every net is joined, 1 when nets are open, 2 when the input could not be taken (and says
 why), 3 when a width was narrowed and `--strict` was given. Every run checks the plan it wrote with
 `astar check` before it reports: copper that breaks a rule, or a net called joined that is not, is
-printed and the run exits 4 (a fault in astar, never in the board). `astar SCENE.json PLAN.json` is the
+printed and the run exits 4 (a fault in astar, never in the board). It exits 5 when every net is joined
+but KiCad will find fault that astar could not help: a custom rule it did not read that may ask more than
+it kept, or a short the board came with (a pad lying on another net's copper); the lines say which. `astar SCENE.json PLAN.json` is the
 old way to say the same and exits 0 whenever it wrote a plan the check finds no fault with. `docs/scene.md` is the scene, `docs/hooks.md` is how a
 track adds a pass, a job kind, a cost term, a copper kind or a report entry.
 

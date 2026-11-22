@@ -38,6 +38,9 @@ pub(crate) struct Old {
     pub pieces: (usize, usize),
     /// how many islands are pads alone, lying on each other
     pub pad_isles: usize,
+    /// shorts the board came with: a pad, the other net whose copper or pad it lies on, and where. (Pads
+    /// of one part that lie on each other are a net tie, the part's own business.)
+    pub shorts: Vec<(usize, u16, (f64, f64))>,
 }
 
 /// One piece: a straight stretch of track, or a via.
@@ -52,6 +55,10 @@ struct Piece {
 
 /// How much two pieces of copper must overlap to be one: KiCad's unit of length, a nanometre.
 const TOUCH: f64 = 1e-6;
+
+/// How much copper of two nets must overlap to be called a short the board came with: a micron, well
+/// past what rounding leaves between two things drawn edge to edge.
+const SHORT: f64 = 1e-3;
 
 impl Piece {
     fn touches(&self, o: &Piece) -> bool {
@@ -221,6 +228,31 @@ impl Router {
                     old.isles[k].pads.push(p);
                     old.of_pad.insert(p, k);
                     old.isles[k].layers |= pmask(p);
+                }
+            }
+        }
+        // shorts the board came with: a pad that lies on old copper of another net, or on a pad of
+        // another net of another part. Nothing here can mend one: it is said, and the run is not whole
+        let pmask = |p: usize| if sc.pads[p].tht { all } else if sc.pads[p].back { 1 << (nl - 1) } else { 1 };
+        let wired: Vec<usize> = (0..sc.pads.len()).filter(|&p| sc.pads[p].net != 0).collect();
+        let pboxes: Vec<(f64, f64, f64, f64)> = wired.iter().map(|&p| sc.pads[p].shape.bbox()).collect();
+        for (i, &p) in wired.iter().enumerate() {
+            let (pad, pb) = (&sc.pads[p], pboxes[i]);
+            for q in pieces.iter().filter(|q| q.net != pad.net && pmask(p) & q.lmask != 0) {
+                if q.a.0.min(q.b.0) - q.r > pb.2 || q.a.0.max(q.b.0) + q.r < pb.0 || q.a.1.min(q.b.1) - q.r > pb.3 || q.a.1.max(q.b.1) + q.r < pb.1 {
+                    continue;
+                }
+                if pad.shape.dist_seg(q.a, q.b) <= q.r - SHORT && !old.shorts.iter().any(|s| s.0 == p && s.1 == q.net) {
+                    old.shorts.push((p, q.net, (pad.x, pad.y)));
+                }
+            }
+            for (j, &o) in wired.iter().enumerate().skip(i + 1) {
+                let (other, ob) = (&sc.pads[o], pboxes[j]);
+                if other.net == pad.net || other.ref_ == pad.ref_ || pmask(p) & pmask(o) == 0 || pb.0 > ob.2 || ob.0 > pb.2 || pb.1 > ob.3 || ob.1 > pb.3 {
+                    continue;
+                }
+                if pad.shape.overlaps(&other.shape, SHORT) {
+                    old.shorts.push((p, other.net, (other.x, other.y)));
                 }
             }
         }

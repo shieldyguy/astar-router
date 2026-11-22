@@ -149,8 +149,14 @@ pub fn route_board(run: &BoardRun, cfg: &Cfg) -> i32 {
     for line in &said {
         eprintln!("{}", line);
     }
+    for d in &rd.doubts {
+        eprintln!("astar: NOT HELD TO: {}. KiCad's DRC will hold the board to it.", d);
+    }
     if faults > 0 {
         return crate::exit::FAULT;
     }
-    routed.exit_code(run.strict)
+    match routed.exit_code(run.strict) {
+        crate::exit::WHOLE if !rd.doubts.is_empty() => crate::exit::UNSURE,
+        code => code,
+    }
 }

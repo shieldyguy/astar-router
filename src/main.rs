@@ -32,6 +32,8 @@ const USAGE: &str = "usage: astar route IN.kicad_pcb -o OUT.kicad_pcb [--plan PL
                       its pads go down by vias (a pad may share one) and nothing joins the vias here
          exit: 0 every net joined, 1 nets open, 2 the input could not be taken, 3 a rule narrowed (with --strict),
                4 astar's own check found fault with the plan it wrote (a fault in astar: the findings are printed)
+               5 every net joined, but KiCad will find fault astar could not help: a custom rule not read that
+                 may ask more than was kept, a short the board came with (the lines say which)
        astar SCENE.json PLAN.json [...]   the same; exit 0 whenever a plan was written
        astar check SCENE.json PLAN.json   astar's own exact check of a plan against its scene: exit 0 clean, 1 findings
        astar explain ...                  why a pad or a net could not be joined (not built yet: T12)
