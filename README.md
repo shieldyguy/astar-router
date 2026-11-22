@@ -30,18 +30,20 @@ nets in; tracks, vias and poured planes per net out. `bench/astar.py` is the ben
 
 ## Where it stands
 
-router-bench's five boards, judged by KiCad's DRC (`./gate.sh`, 2026-11-21). astar ran on a 2-core cloud
+router-bench's five boards, judged by KiCad's DRC (`./gate.sh`, 2026-11-22). astar ran on a 2-core cloud
 machine; the other two columns are the bench scoreboard's, recorded on the Mac. This repo carries dock and
 g474 of the five; the other three are routed where a router-bench checkout is beside it. What astar does not
-do yet is in CLAUDE.md; `corpus/SCOREBOARD.md` is the wider corpus as of an earlier commit (d7d89bc).
+do yet is in CLAUDE.md; `corpus/SCOREBOARD.md` is the wider corpus at the same commit: 58 of 80 boards whole
+with no new DRC error (the house's and the fork's own: 38 of 41; the rest are KRT's fixtures, KiCad's demos
+and open boards, most of them BGA boards astar does not fan out).
 
 | board | nets | astar | landed | new DRC | track mm | vias | krt_better | topo |
 |-------|-----:|------:|-------:|--------:|---------:|-----:|-----------:|-----:|
-| dock  |   28 | 2.3 s |  28/28 | 0 |  454 |  50 |  69.5 s, 443 mm |  0.1 s, 509 mm |
-| g474  |   41 | 0.1 s |  41/41 | 0 |  772 |  93 |  19.4 s, 738 mm |  0.5 s, 927 mm |
-| ccb   |   47 | 0.4 s |  47/47 | 0 | 1124 |  92 |  33.5 s, 1074 mm |  0.6 s, 1442 mm |
-| tb150 |  118 | 1.6 s | 118/118 | 0 | 2983 | 224 |  46.5 s, 2542 mm |  1.6 s, 3524 mm |
-| ub400 |  243 | 6.3 s | 243/243 | 0 | 10020 | 715 | 267.4 s, 9954 mm | 13.6 s, 12298 mm |
+| dock  |   28 | 2.0 s |  28/28 | 0 |  446 |  55 |  69.5 s, 443 mm |  0.1 s, 509 mm |
+| g474  |   41 | 0.1 s |  41/41 | 0 |  739 | 113 |  19.4 s, 738 mm |  0.5 s, 927 mm |
+| ccb   |   47 | 0.5 s |  47/47 | 0 | 1097 | 119 |  33.5 s, 1074 mm |  0.6 s, 1442 mm |
+| tb150 |  118 | 1.1 s | 118/118 | 0 | 2755 | 238 |  46.5 s, 2542 mm |  1.6 s, 3524 mm |
+| ub400 |  243 | 11.2 s | 243/243 | 0 | 9866 | 803 | 267.4 s, 9954 mm | 13.6 s, 12298 mm |
 
 astar's seconds are its own (`astar route`), the judging apart. The same scene gives the same copper
 every run.
