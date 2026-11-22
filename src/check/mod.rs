@@ -79,7 +79,7 @@ struct Prim {
 
 #[derive(Clone, Debug)]
 pub struct Finding {
-    /// open, open-unsaid, short, clearance, hole, hole-to-hole, edge, outside, keepout, plan
+    /// open, open-unsaid, layer, short, clearance, hole, hole-to-hole, edge, outside, keepout, plan
     pub kind: &'static str,
     pub net: String,
     /// the other net, when there is one
@@ -638,6 +638,40 @@ pub fn check(sc: &Scene, plan: &Plan, planes: &[(u16, usize)]) -> Report {
         }
     }
 
+    // a net kept to layers: its tracks run there, and on another layer only as far from a pad of its
+    // own as the stub it was allowed (and a step of the grid, by which a track's end is drawn to its pad)
+    for (name, layers, stub) in &plan.route_on {
+        let Some(ni) = sc.nets.iter().position(|n| n.name == *name) else { continue };
+        let slack = plan.pitch.unwrap_or(0.1) + EPS;
+        for t in plan.nets.iter().filter(|n| n.name == *name).flat_map(|n| n.tracks.iter()).filter(|t| !layers.contains(&t.layer)) {
+            let Some(l) = sc.layers.iter().position(|x| *x == t.layer) else { continue };
+            let own: Vec<&crate::scene::Pad> = sc.nets[ni].pads.iter().map(|&p| &sc.pads[p]).filter(|p| p.tht || (if p.back { nl - 1 } else { 0 }) == l).collect();
+            let mut worst: (f64, Pt) = (0.0, (0.0, 0.0));
+            for piece in &t.path {
+                let pts: Vec<Pt> = match piece {
+                    Piece::Line(v) => vec![(v[0], v[1]), (v[2], v[3])],
+                    Piece::Arc(v) => arc_points((v[0], v[1]), (v[2], v[3]), (v[4], v[5]), CHORD),
+                };
+                for p in pts {
+                    let d = own.iter().map(|q| q.shape.dist(p.0, p.1)).fold(f64::MAX, f64::min);
+                    if d > worst.0 {
+                        worst = (d, p);
+                    }
+                }
+            }
+            if worst.0 > stub + slack {
+                findings.push(Finding {
+                    kind: "layer",
+                    net: name.clone(),
+                    other: String::new(),
+                    layer: t.layer.clone(),
+                    at: Some(worst.1),
+                    detail: format!("a track of it runs on {} as far as {:.3} mm from its nearest pad there; it is kept to {} and may leave a pad on another layer by {} mm", t.layer, worst.0, layers.join(", "), stub),
+                });
+            }
+        }
+    }
+
     // is every net one piece?
     let said: std::collections::HashSet<&str> = plan.left_out.iter().map(|s| s.as_str()).collect();
     let (mut nets, mut joined) = (0, 0);
@@ -709,7 +743,7 @@ pub fn check(sc: &Scene, plan: &Plan, planes: &[(u16, usize)]) -> Report {
         notes.push("the outline is not closed: nothing was checked for lying outside the board".into());
     }
 
-    let order = |k: &str| ["plan", "open-unsaid", "open", "short", "clearance", "hole", "hole-to-hole", "edge", "outside", "keepout"].iter().position(|x| *x == k).unwrap_or(99);
+    let order = |k: &str| ["plan", "open-unsaid", "open", "layer", "short", "clearance", "hole", "hole-to-hole", "edge", "outside", "keepout"].iter().position(|x| *x == k).unwrap_or(99);
     findings.sort_by(|x, y| {
         let at = |f: &Finding| f.at.map_or((0i64, 0i64), |(x, y)| ((x * 1e4).round() as i64, (y * 1e4).round() as i64));
         (order(x.kind), &x.net, &x.other, at(x), &x.detail).cmp(&(order(y.kind), &y.net, &y.other, at(y), &y.detail))
@@ -723,7 +757,8 @@ const USAGE: &str = "usage: astar check SCENE.json PLAN.json [--max N] [-q]
        of the board edge and of every keep-out, by the scene's rules. One finding a line:
          KIND NET [/ OTHER NET] [on LAYER] [at (X, Y)]: what is wrong
        KIND: open-unsaid (a net in pieces that the plan calls joined), open (in pieces, and the plan's left_out
-       says so), short, clearance, hole, hole-to-hole, edge, outside, keepout, plan (the plan does not fit the scene)
+       says so), layer (a net kept to layers, by the plan's route_on, that runs elsewhere), short, clearance, hole,
+       hole-to-hole, edge, outside, keepout, plan (the plan does not fit the scene)
        --max N  print at most N findings (the count is always whole)     -q  print no findings, only the count
        exit: 0 clean, 1 findings, 2 the scene or the plan could not be read";
 

@@ -38,9 +38,12 @@ asked: `git push origin main:release` builds, tests and publishes `build-<sha12>
   open, and the others keep clear of its pads, its copper and the way out of its pins.
 - Copper the board already has is joined as KiCad counts it: whatever copper of a net overlaps is one,
   pads lying on pads included. Lay the nets you want by hand first; astar builds on them.
-- A net on certain layers only: `--layers 'CLK*=B.Cu'` (several: `'CLK*=B.Cu,SPI_*=F.Cu+In2.Cu'`). Its pads
-  on other layers are left by a stub to a via, 2.5 mm at most (`--stub MM`). The plan's notes say how much
-  runs where.
+- The layers a net is routed on: `--route-on 'CLK*=B.Cu'` (several: `'CLK*=B.Cu,SPI_*=F.Cu+In2.Cu'`). Its
+  tracks run only there; its vias go through every layer as always. A pad of it on another layer is left
+  by a stub to a via, at most 2.5 mm from the pad (`--stub MM`). A rule that cannot be kept leaves the net
+  open and says so; it can also cost a neighbour its way on a tight board, which the run reports like any
+  open net. The plan's notes say how much runs where, and astar's check holds the plan to the rule.
+  KiCad's DRC knows nothing of this rule.
 - A net left open says what is in its way: `astar: open: NET: ...` names the pad or keep-out that shuts
   a pad in, or the nets whose copper the nearest way runs through, with the place.
 - A block laid out alone whose ground is its host's pour: `--drops GND`.

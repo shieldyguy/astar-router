@@ -266,7 +266,7 @@ impl Scene {
         }
         for (i, n) in net_list.iter().enumerate() {
             let at = format!("nets[{}]", i);
-            let o = O::new(n, at.clone(), &["name", "role", "class", "width", "clearance", "via", "drill", "impedance", "layers"])?;
+            let o = O::new(n, at.clone(), &["name", "role", "class", "width", "clearance", "via", "drill", "impedance", "route_on"])?;
             let name = o.s("name")?;
             if name.is_empty() {
                 return Err(format!("{}: a net without a name", at));
@@ -285,8 +285,8 @@ impl Scene {
             net.via = o.f_opt("via")?;
             net.drill = o.f_opt("drill")?;
             net.impedance = impedance(o.j.get("impedance"), &at)?;
-            for l in o.j.get("layers").arr() {
-                let Some(l) = l.s() else { return Err(format!("{}: layers is a list of layer names", at)) };
+            for l in o.j.get("route_on").arr() {
+                let Some(l) = l.s() else { return Err(format!("{}: route_on is a list of layer names", at)) };
                 net.keep |= 1 << names.layer(l, &at)?;
             }
             nets.push(net);

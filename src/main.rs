@@ -21,9 +21,10 @@ const USAGE: &str = "usage: astar route IN.kicad_pcb -o OUT.kicad_pcb [--plan PL
              [--turn MM] [--inner X] [--rip MM] [--rip-drop MM] [--fence MM] [--lane MM] [--toll X] [--pour PADS]
              [--one-way] [--rounds N] [--pressure X] [--radius MM] [--seconds S] [--skip PASS] [--strict] [-v]
              [--cross X] [--drops NET[,NET]] [--nets NET[,NET]] [--except NET[,NET]]
-             [--layers NET=LAYER[+LAYER][,...]] [--stub MM]
-         --layers NET=LAYER: the net's tracks are kept to these layers (--layers 'CLK*=B.Cu'). A pad of it on
-                      another layer is left by a stub to a via, no longer than --stub (2.5 mm)
+             [--route-on NET=LAYER[+LAYER][,...]] [--stub MM]
+         --route-on NET=LAYER: the net's tracks run on these layers only (--route-on 'CLK*=B.Cu'); its vias go
+                      through every layer as always. A pad of it on another layer is left by a stub to a
+                      via, no longer than --stub
          --nets NET:  only these nets are routed (* stands for any run of letters: --nets 'SPI_*,CLK');
          --except NET: these are not. A net not routed gets no copper: its pads, its copper and the way
                       out of its pins are kept clear of, and it is not counted as open
@@ -115,14 +116,14 @@ fn route_command(args: &[String], old_form: bool) -> ! {
                     _ => refuse(&format!("{} takes the names of nets, with commas between (* for any run of letters)", flag)),
                 }
             }
-            "--layers" => {
+            "--route-on" => {
                 i += 1;
-                let bad = || refuse("--layers takes NET=LAYER, with + between layers and commas between nets: --layers 'CLK*=B.Cu,SPI_*=F.Cu+In2.Cu'");
+                let bad = || refuse("--route-on takes NET=LAYER, with + between layers and commas between nets: --route-on 'CLK*=B.Cu,SPI_*=F.Cu+In2.Cu'");
                 match args.get(i) {
                     Some(spec) if !spec.starts_with("--") => {
                         for one in spec.split(',').filter(|s| !s.is_empty()) {
                             match one.rsplit_once('=') {
-                                Some((net, layers)) if !net.is_empty() && !layers.is_empty() => cfg.layers.push((net.to_string(), layers.split('+').map(str::to_string).collect())),
+                                Some((net, layers)) if !net.is_empty() && !layers.is_empty() => cfg.route_on.push((net.to_string(), layers.split('+').map(str::to_string).collect())),
                                 _ => bad(),
                             }
                         }

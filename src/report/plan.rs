@@ -81,6 +81,19 @@ pub fn plan_json(r: &Router, note: &str, read_s: f64, total_s: f64) -> String {
     // the nets that were not asked for: the check does not ask whether they are whole
     let left: Vec<String> = r.sc.nets.iter().skip(1).filter(|n| n.pads.len() >= 2 && !n.in_scope).map(|n| quote(&n.name)).collect();
     let _ = write!(o, "],\n \"not_asked\": [{}", left.join(", "));
+    // the nets whose tracks are kept to layers, with the stub they were allowed: the check holds the
+    // plan's copper to it
+    let mut kept: Vec<u16> = r.keeps.keys().copied().collect();
+    kept.sort();
+    let kept: Vec<String> = kept
+        .iter()
+        .map(|&n| {
+            let keep = r.sc.nets[n as usize].keep;
+            let layers: Vec<String> = (0..r.sc.layers.len()).filter(|l| keep & (1 << l) != 0).map(|l| quote(&r.sc.layers[l])).collect();
+            format!("\n  {{\"net\": {}, \"layers\": [{}], \"stub\": {}}}", quote(&r.sc.nets[n as usize].name), layers.join(", "), num(r.cfg.stub_mm))
+        })
+        .collect();
+    let _ = write!(o, "],\n \"route_on\": [{}", kept.join(","));
     let (mm, vias, pops, searches) = r.totals();
     let passes: Vec<String> = r.clock.lines().iter().map(|(name, s)| format!("{}: {:.4}", quote(name), s)).collect();
     let notes: Vec<String> = r

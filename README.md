@@ -165,12 +165,17 @@ every run.
    copper are fixed copper to the nets that are routed, and their fine-pitch pins keep their fences and
    lanes, so the way out of them is still there for whoever routes them next. The plan names them
    (`not_asked`).
-   **A net kept to layers** (`--layers 'CLK*=B.Cu'`, a net's `layers` in the scene). Its tracks run on
-   the layers named and nowhere else, in every search and in the redrawing. A pad of it on another
-   layer is left by a stub to a via: off its layers the net may stand only within `--stub` (2.5 mm) of
-   a pad of its own on that layer, and a step there costs three, so the stub is as short as there is
-   room for. A rule that cannot be kept leaves the net open, and the run says the rule is what shuts
-   the pad in. The plan's notes say how much of the net runs where (`layers`).
+   **The layers a net is routed on** (`--route-on 'CLK*=B.Cu'`, a net's `route_on` in the scene). Its
+   tracks run on the layers named and nowhere else, in every search and in the redrawing. Its vias are
+   not part of it: a through via goes through every layer, as always. A pad of the net on another
+   layer is left by a stub to a via: off its layers the net may stand only within `--stub` (2.5 mm)
+   of the copper of a pad of its own on that layer, and a step there costs three, so the stub is as
+   short as there is room for. A rule that cannot be kept leaves the net open, and the run says the
+   rule is what shuts the pad in. The plan records the rule (`route_on`) and its notes say how much of
+   the net runs where; astar's own check holds the plan's copper to it (`layer`).
+   Where 2.5 mm comes from: every signal net of the 38 boards in `corpus/boards`, 426 of them, was
+   kept to the bottom layer by itself. All 426 were joined at 2.5 mm, and at 4 and 6 mm too; with room
+   to spare the longest stub ran to 5.9 mm, and the shorter limit gave less track off the layer in all.
    **Drops** (`--drops NET`). A block laid out alone has no pour of its own: its ground is the pour of
    the board it will be set into. Such a net's pads go down by vias (a pad may share one, and old copper that reaches a via counts) and nothing else, the vias
    are joined by nothing here (the notes say so, `drops`), no zone is drawn for it, and the layer the

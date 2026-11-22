@@ -47,6 +47,10 @@ pub struct Plan {
     pub left_out: Vec<String>,
     /// the nets the run was not asked to route (`--nets`, `--except`, the scene's `scope`)
     pub not_asked: Vec<String>,
+    /// the nets whose tracks are kept to layers: (net, the layers, the stub allowed from a pad on another)
+    pub route_on: Vec<(String, Vec<String>, f64)>,
+    /// the grid's pitch, when the plan says it
+    pub pitch: Option<f64>,
 }
 
 fn finite(v: &[f64]) -> bool {
@@ -144,6 +148,8 @@ impl Plan {
         }
         let left_out = j.get("left_out").arr().iter().filter_map(|x| x.get("net").s().map(|s| s.to_string())).collect();
         let not_asked = j.get("not_asked").arr().iter().filter_map(|x| x.s().map(|s| s.to_string())).collect();
-        Ok(Plan { nets, planes, left_out, not_asked })
+        let route_on = j.get("route_on").arr().iter().filter_map(|x| Some((x.get("net").s()?.to_string(), x.get("layers").arr().iter().filter_map(|l| l.s().map(|s| s.to_string())).collect(), x.get("stub").f()?))).collect();
+        let pitch = j.get("summary").get("pitch").f();
+        Ok(Plan { nets, planes, left_out, not_asked, route_on, pitch })
     }
 }

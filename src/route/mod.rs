@@ -231,14 +231,14 @@ pub fn like(pattern: &str, name: &str) -> bool {
 }
 
 /// What the settings ask of the nets: which are routed (`--nets`, `--except`, within what the scene asks
-/// for itself), and which are kept to layers (`--layers`, over the scene's own).
+/// for itself), and which are kept to layers (`--route-on`, over the scene's own).
 pub fn ask(sc: &mut Scene, cfg: &Cfg) {
     let layers = sc.layers.clone();
     for n in sc.nets.iter_mut().skip(1) {
         if (!cfg.nets.is_empty() && !cfg.nets.iter().any(|p| like(p, &n.name))) || cfg.except.iter().any(|p| like(p, &n.name)) {
             n.in_scope = false;
         }
-        for (_, names) in cfg.layers.iter().filter(|(p, _)| like(p, &n.name)) {
+        for (_, names) in cfg.route_on.iter().filter(|(p, _)| like(p, &n.name)) {
             n.keep = names.iter().filter_map(|l| layers.iter().position(|x| x == l)).fold(0, |m, l| m | (1 << l));
         }
     }
@@ -264,13 +264,13 @@ pub fn check(sc: &Scene, cfg: &Cfg) -> Result<(), String> {
             }
         }
     }
-    for (name, layers) in &cfg.layers {
+    for (name, layers) in &cfg.route_on {
         if !sc.nets.iter().skip(1).any(|n| like(name, &n.name)) {
-            return Err(format!("--layers {}: the board has no net of that name", name));
+            return Err(format!("--route-on {}: the board has no net of that name", name));
         }
         for l in layers {
             if !sc.layers.contains(l) {
-                return Err(format!("--layers {}={}: the board has no copper layer {} (it has {})", name, layers.join("+"), l, sc.layers.join(", ")));
+                return Err(format!("--route-on {}={}: the board has no copper layer {} (it has {})", name, layers.join("+"), l, sc.layers.join(", ")));
             }
         }
     }
@@ -645,8 +645,8 @@ impl Router {
         // the nets kept to layers: each with its pads, which it may leave on their own layer
         let all: u32 = (1u32 << nl) - 1;
         for ni in (1..r.sc.nets.len()).filter(|&i| r.sc.nets[i].keep != 0 && r.sc.nets[i].plane.is_none()) {
-            let pads = r.sc.nets[ni].pads.iter().map(|&p| (if r.sc.pads[p].tht { all } else if r.sc.pads[p].back { 1 << (nl - 1) } else { 1 }, r.sc.pads[p].x, r.sc.pads[p].y)).collect();
-            r.keeps.insert(ni as u16, crate::search::Keep { layers: r.sc.nets[ni].keep, pads, reach2: r.cfg.stub_mm * r.cfg.stub_mm });
+            let pads = r.sc.nets[ni].pads.iter().map(|&p| (if r.sc.pads[p].tht { all } else if r.sc.pads[p].back { 1 << (nl - 1) } else { 1 }, r.sc.pads[p].shape.clone())).collect();
+            r.keeps.insert(ni as u16, crate::search::Keep { layers: r.sc.nets[ni].keep, pads, reach: r.cfg.stub_mm });
         }
         r.wear = vec![0u8; r.f.cells.len()];
         Ok(r)

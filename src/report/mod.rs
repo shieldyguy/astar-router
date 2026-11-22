@@ -71,7 +71,7 @@ impl Router {
             let keep = self.sc.nets[n as usize].keep;
             let (on, other): (f64, Vec<String>) = ((0..nl).filter(|l| keep & (1 << l) != 0).map(|l| mm[l]).sum(), (0..nl).filter(|&l| keep & (1 << l) == 0 && mm[l] > 0.0).map(|l| format!("{:.1} mm on {}", mm[l], self.sc.layers[l])).collect());
             let stubs = if other.is_empty() { String::new() } else { format!("; {} from its pads there to their vias", other.join(", ")) };
-            self.note("layers", n, None, format!("kept to {}: {:.1} mm there{}", self.kept_to(n), on, stubs));
+            self.note("route on", n, None, format!("kept to {}: {:.1} mm there{}", self.kept_to(n), on, stubs));
         }
         // nets that were not asked for
         let left: Vec<&str> = self.sc.nets.iter().skip(1).filter(|n| n.pads.len() >= 2 && !n.in_scope).map(|n| n.name.as_str()).collect();

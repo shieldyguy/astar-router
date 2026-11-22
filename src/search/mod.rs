@@ -40,10 +40,10 @@ struct Aside {
 pub struct Keep {
     /// the layers it may run on, as a mask
     pub layers: u32,
-    /// its pads: (the layers the pad is on, x, y)
-    pub pads: Vec<(u32, f64, f64)>,
-    /// how far from a pad of its own it may run on that pad's layer, squared
-    pub reach2: f64,
+    /// its pads: the layers each is on, and its copper
+    pub pads: Vec<(u32, crate::geom::Shape)>,
+    /// how far from the copper of a pad of its own it may run on that pad's layer
+    pub reach: f64,
 }
 
 impl Keep {
@@ -51,7 +51,7 @@ impl Keep {
     /// net on that layer is near enough for this to be the way from the pad to its via.
     #[inline]
     pub fn off(&self, l: usize, x: f64, y: f64) -> bool {
-        self.layers & (1 << l) == 0 && !self.pads.iter().any(|&(m, px, py)| m & (1 << l) != 0 && (px - x) * (px - x) + (py - y) * (py - y) <= self.reach2)
+        self.layers & (1 << l) == 0 && !self.pads.iter().any(|(m, pad)| m & (1 << l) != 0 && pad.dist(x, y) <= self.reach)
     }
 }
 
