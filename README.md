@@ -171,7 +171,7 @@ every run.
    a pad of its own on that layer, and a step there costs three, so the stub is as short as there is
    room for. A rule that cannot be kept leaves the net open, and the run says the rule is what shuts
    the pad in. The plan's notes say how much of the net runs where (`layers`).
- A block laid out alone has no pour of its own: its ground is the pour of
+   **Drops** (`--drops NET`). A block laid out alone has no pour of its own: its ground is the pour of
    the board it will be set into. Such a net's pads go down by vias (a pad may share one, and old copper that reaches a via counts) and nothing else, the vias
    are joined by nothing here (the notes say so, `drops`), no zone is drawn for it, and the layer the
    vias go down to stays open to tracks, at the crossing price.
