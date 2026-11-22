@@ -133,12 +133,14 @@ impl Router {
         for (ni, n) in self.sc.nets.iter().enumerate() {
             let Some(pl) = n.plane else { continue };
             let zones: Vec<&crate::scene::Zone> = self.sc.copper.zones.iter().filter(|z| z.net as usize == ni && z.layer == pl && z.outline.len() >= 3 && !(z.locked && z.min_width == Some(0.0))).collect();
-            if zones.is_empty() {
+            // and not into an area that forbids pours on its layer
+            let mut barred: Vec<(Shape, f64)> = self.sc.keepouts.iter().filter(|k| k.forbid.zones && k.layers.contains(&pl) && k.poly.len() >= 3).map(|k| (Shape::Poly { pts: k.poly.clone(), r: 0.0 }, reach)).collect();
+            // a plane no zone draws covers the board, but for those areas: with none of them, every
+            // via site is one of its own
+            if zones.is_empty() && barred.is_empty() {
                 continue;
             }
             let shapes: Vec<(Shape, Vec<Shape>)> = zones.iter().map(|z| (Shape::Poly { pts: z.outline.clone(), r: 0.0 }, z.holes.iter().map(|h| Shape::Poly { pts: h.clone(), r: 0.0 }).collect())).collect();
-            // and not into an area that forbids pours on its layer
-            let mut barred: Vec<(Shape, f64)> = self.sc.keepouts.iter().filter(|k| k.forbid.zones && k.layers.contains(&pl) && k.poly.len() >= 3).map(|k| (Shape::Poly { pts: k.poly.clone(), r: 0.0 }, reach)).collect();
             // nor into another net's pour on its layer that is filled before it
             let first = zones.iter().map(|z| z.priority).min().unwrap_or(0);
             for o in &self.sc.copper.zones {
@@ -154,7 +156,7 @@ impl Router {
                         continue;
                     }
                     let (px, py) = (self.f.wx(x), self.f.wy(y));
-                    if shapes.iter().any(|(o, holes)| o.depth(px, py) >= reach && holes.iter().all(|h| h.dist(px, py) >= reach)) && barred.iter().all(|(k, need)| k.dist(px, py) >= *need) {
+                    if (shapes.is_empty() || shapes.iter().any(|(o, holes)| o.depth(px, py) >= reach && holes.iter().all(|h| h.dist(px, py) >= reach))) && barred.iter().all(|(k, need)| k.dist(px, py) >= *need) {
                         sites[i >> 6] |= 1 << (i & 63);
                     }
                 }

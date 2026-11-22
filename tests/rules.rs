@@ -121,3 +121,31 @@ fn a_track_that_stepped_aside_for_a_neighbour_since_moved_ends_straight() {
     let (code, said) = checked("fan.json");
     assert_eq!(code, Some(0), "{}", said);
 }
+
+/// tests/scenes/old_copper.json with an area over CG.2 where the back layer may not be poured: G's plane is
+/// not there, so the pad's via stands outside the area (a via and a little more from it), where the
+/// plane is. Without the area the via stands right at the pad.
+#[test]
+fn a_plane_is_not_where_its_layer_may_not_be_poured() {
+    let text = std::fs::read_to_string(format!("{}/tests/scenes/old_copper.json", env!("CARGO_MANIFEST_DIR"))).unwrap();
+    let barred = text.replacen("\"units\": \"mm\",", "\"units\": \"mm\", \"keepouts\": [{\"layers\": [\"B.Cu\"], \"forbid\": [\"zones\"], \"poly\": [[14, 7], [18, 7], [18, 11], [14, 11]]}],", 1);
+    assert_ne!(text, barred);
+    let via_of = |scene: &str| {
+        let dir = std::env::temp_dir().join(format!("astar-barred-test-{}-{}", std::process::id(), scene.len()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join("scene.json");
+        std::fs::write(&file, scene).unwrap();
+        let routed = astar::route(astar::Scene::load(file.to_str().unwrap()).unwrap(), &astar::Cfg::default()).unwrap();
+        std::fs::remove_dir_all(&dir).ok();
+        assert!(routed.open_nets().is_empty());
+        let plan = astar::json::parse(&routed.plan()).unwrap();
+        let g = plan.get("nets").arr().iter().find(|n| n.get("name").s() == Some("G")).unwrap().clone();
+        // the via nearest CG.2 at (16, 9)
+        g.get("vias").arr().iter().map(|v| v.get("at").nums()).map(|v| (v[0], v[1])).min_by(|a, b| (a.0 - 16.0).hypot(a.1 - 9.0).partial_cmp(&(b.0 - 16.0).hypot(b.1 - 9.0)).unwrap()).unwrap()
+    };
+    let near = via_of(&text);
+    assert!(near.0 > 14.0 && near.0 < 18.0 && near.1 > 7.0 && near.1 < 11.0, "with no area the via is by its pad: {:?}", near);
+    let out = via_of(&barred);
+    let clear = (14.0 - out.0).max(out.0 - 18.0).max(7.0 - out.1).max(out.1 - 11.0);
+    assert!(clear >= 0.3, "the via stands {:.2} mm outside the area: {:?}", clear, out);
+}

@@ -624,8 +624,10 @@ pub fn check(sc: &Scene, plan: &Plan, planes: &[(u16, usize)]) -> Report {
     }
 
     // what each plane reaches
+    // (a plane is not poured where an area forbids pours on its layer)
     for q in &plane_nodes {
-        let within = |p: Pt| q.area.as_ref().map_or(true, |(outer, holes)| in_loop(outer, p) && !holes.iter().any(|h| in_loop(h, p)));
+        let barred = |p: Pt| sc.keepouts.iter().any(|k| k.forbid.zones && k.layers.contains(&q.layer) && k.poly.len() >= 3 && in_loop(&k.poly, p));
+        let within = |p: Pt| q.area.as_ref().map_or(true, |(outer, holes)| in_loop(outer, p) && !holes.iter().any(|h| in_loop(h, p))) && !barred(p);
         for p in prims.iter().filter(|p| p.net == q.net && p.node != NONE && p.lmask & (1 << q.layer) != 0) {
             let inside = match (&p.solid, p.what) {
                 (Solid::Cap { a, b, .. }, What::Track) => within(*a) || within(*b),

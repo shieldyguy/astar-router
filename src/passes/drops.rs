@@ -1,7 +1,7 @@
 //! Plane drops: a surface pad of a plane net down into its plane.
 
 use crate::field::{ddist, sdist};
-use crate::geom::hypot;
+use crate::geom::{hypot, Shape};
 use super::{Pass, Step};
 use crate::route::{Ask, Job, JobKind, Router};
 
@@ -37,11 +37,12 @@ fn plan(r: &mut Router) {
 
 impl Router {
     /// Is this pad of a plane net in its plane as it stands: a through-hole pad, or a surface pad on the
-    /// plane's layer?
+    /// plane's layer, that does not lie in an area where the plane's layer may not be poured?
     pub fn pad_in_plane(&self, p: usize) -> bool {
         let pad = &self.sc.pads[p];
         let surface = if pad.back { self.sc.layers.len() - 1 } else { 0 };
-        pad.tht || self.sc.nets[pad.net as usize].plane == Some(surface)
+        let Some(pl) = self.sc.nets[pad.net as usize].plane else { return false };
+        (pad.tht || pl == surface) && !self.sc.keepouts.iter().any(|k| k.forbid.zones && k.layers.contains(&pl) && k.poly.len() >= 3 && Shape::Poly { pts: k.poly.clone(), r: 0.0 }.dist(pad.x, pad.y) == 0.0)
     }
 
     /// Does copper the board came with join this pad of a plane net to its plane already: a track to a
