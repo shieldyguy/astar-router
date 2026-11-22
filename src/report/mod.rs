@@ -66,6 +66,11 @@ impl Router {
         if let (true, Some((size, drill))) = (small > 0, self.via_small) {
             self.note("small via", 0, None, format!("{} of {} vias are {} mm on a {} mm hole, the least the board allows, where the {} mm via did not fit", small, all, crate::json::num(size), crate::json::num(drill), crate::json::num(self.sc.rules.via)));
         }
+        // the pairs: laid side by side, or routed as two nets and why
+        let said: Vec<(u16, String)> = self.duos.iter().filter(|d| !d.said.is_empty()).map(|d| (d.p, d.said.clone())).chain(self.duo_notes.iter().cloned()).collect();
+        for (net, text) in said {
+            self.note("pair", net, None, text);
+        }
         // copper the board came with, and what it joins
         if self.old.pieces != (0, 0) {
             let (pads, nets) = (self.old.isles.iter().filter(|i| i.copper).map(|i| i.pads.len()).sum::<usize>(), {

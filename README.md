@@ -179,6 +179,20 @@ every run.
    On the 29 house and fixture boards whose ground has nothing drawn, the planned pour cut the track by
    a fifth (5,859 mm to 4,589 mm) with the same nets joined, and KiCad's verdict after a refill was the
    same on every one: no error and no open net that the wired board did not have.
+   **Pairs** (`src/route/duo.rs`). A differential pair is two nets that run side by side between the two
+   parts both have a pad on (the connector or its ESD array, the chip). Between them the pair is one
+   thing in the negotiation: a centre line, searched as a net of its own that keeps half the pair's
+   breadth more from everything than a plain net does, and the two tracks drawn off it, one to each
+   side, at the pair's width and gap (the pair's own, else its class's; the gap never under the
+   clearance). The line pays for what it runs through like any path, so the pair and its neighbours
+   settle who gives way by price; lifting either net lifts both. Each net's pads are then joined to
+   the nearer end of its track like any net's. A pair stays on its pads' layer. One that cannot be
+   laid so (its pads lie the other way round at one end, the only way is the long way round, its
+   pads are on both sides) is routed as two plain nets, and the plan says which and why (`pair`,
+   `astar: pair: ...` on stderr); a laid pair's note gives its length side by side and how much
+   longer one half is. The two halves are not made the same length. `--skip pairs` routes every
+   pair as two nets. Of the 13 pairs on the house, fixture and bench boards 7 are laid side by
+   side, with the same nets joined and the same verdict from KiCad as before.
    **Some nets only** (`--nets`, `--except`, the scene's `scope`). The nets asked for are routed; the
    others get no copper and are not counted as open. They are still on the board: their pads and their
    copper are fixed copper to the nets that are routed, and their fine-pitch pins keep their fences and
@@ -217,7 +231,8 @@ The plan to close these, and the rest of the distance to KRT, is in `plan/` (sta
   gets no ground pour on its outer layers unless `--plane` asks for one.
 - Copper already on the board is never lifted: a net whose old copper is in another's way is not
   routed again. The fill a zone was last given is not read; astar works the fill out itself (10).
-- Differential pairs, length matching and impedance are not known to it.
+- A differential pair runs side by side on one layer only, and its halves are not length-matched; a
+  match group and an impedance target are carried and not used.
 - A clearance asked on one layer only, or between two classes only, is kept everywhere (the largest of
   them): legal, and more room than the rule asks. A track width for one layer is not used, and every net
   gets the board's via, whatever its class asks (a class that asks another is named in the notes).

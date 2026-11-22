@@ -75,9 +75,12 @@ plus a million, and it is whole or has fewer nets open. `--one-way` routes the c
     Router::add_job(&mut self, job: Job) -> usize
 
 A job is what the negotiation routes, lifts and routes again. Its kind says how. Today: `NET`
-(`src/route/net.rs`: a net's pads joined one at a time into a tree) and `DROP` (`src/passes/drops.rs`:
-one surface pad into its net's plane). A pair or a tap is a new `const JobKind` in its own file and a
-plan pass that adds jobs of it.
+(`src/route/net.rs`: a net's pads joined one at a time into a tree), `DROP` (`src/passes/drops.rs`:
+one surface pad into its net's plane) and `RELIEF` (`src/route/fill.rs`: the short tracks a plane's pin
+gets where its relief has too few spokes). A tap is a new `const JobKind` in its own file and a plan
+pass that adds jobs of it. A differential pair is no kind of its own: it is its two nets' `NET` jobs,
+tied (`deps`), with a track each laid first that the net's tree starts from (`Job::trunk`,
+`src/route/duo.rs`).
 
 `route(r, j)` finds the job's connections and lays them:
 
@@ -180,6 +183,7 @@ Kinds today, all written at the end of a run by `route::route` (`Router::close_r
 | `loose` | a piece of old copper no pad stands on that could not be joined to the rest of its net, with where | the net counts as open: exit 1 |
 | `ground` | a ground of three pads or more joined by track: the board has no pour and no plane for it | nobody yet |
 | `drops` | a net joined off this board (`--drops`): how many pads go down by how many vias, which nothing joins here | nobody yet |
+| `pair` | a differential pair: `laid as a pair on F.Cu: 8.8 mm side by side, 0.2 mm wide and 0.18 mm apart, from U1 to U3; USB_DM is 0.60 mm the longer there`, or `routed as two nets: ...` with why | stderr, always (`astar: pair:`) |
 | `choice` | what the run chose between two boards (the pour) | the plan's `summary.note` |
 | `unused` | something the scene carries that the router does not use yet | stderr, always |
 

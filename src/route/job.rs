@@ -115,11 +115,13 @@ pub struct Job {
     pub rough: bool,
     /// how many of its track ends at pads are on their true line, and how many are laid as found
     pub ends: (u32, u32),
+    /// the net's half of its pair's run side by side, where it is in one (`duo`): the job's first track
+    pub trunk: Option<super::duo::Trunk>,
 }
 
 impl Job {
     pub fn new(kind: JobKind, net: u16, pad: Option<usize>) -> Job {
-        Job { kind, net, pad, objs: vec![], tracks: vec![], vias: vec![], small: vec![], nodes: 0, clash_cells: vec![], done: false, open: vec![], tries: 0, walled: vec![], walled_loose: 0, blockers: vec![], locked: false, loose: vec![], pour_pads: vec![], pour_ends: vec![], refills: 0, moved: vec![], paths: vec![], rough: false, ends: (0, 0) }
+        Job { kind, net, pad, objs: vec![], tracks: vec![], vias: vec![], small: vec![], nodes: 0, clash_cells: vec![], done: false, open: vec![], tries: 0, walled: vec![], walled_loose: 0, blockers: vec![], locked: false, loose: vec![], pour_pads: vec![], pour_ends: vec![], refills: 0, moved: vec![], paths: vec![], rough: false, ends: (0, 0), trunk: None }
     }
 }
 

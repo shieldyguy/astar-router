@@ -1,6 +1,6 @@
 //! A whole net: its pads joined one at a time into a tree.
 
-use super::{Ask, Job, JobKind, Router};
+use super::{Ask, Job, JobKind, Node, Router};
 use crate::geom::hypot;
 use crate::scene::Scene;
 use std::collections::HashMap;
@@ -60,7 +60,9 @@ impl Router {
             nets.push((ni, n.width, (x1 - x0) + (y1 - y0)));
         }
         nets.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap().then(a.2.partial_cmp(&b.2).unwrap()));
-        for (ni, _, _) in nets {
+        // (the pairs before everything else: side by side they need the most room, and the straight way)
+        let (first, rest): (Vec<_>, Vec<_>) = nets.into_iter().partition(|&(ni, _, _)| self.duo_of(ni as u16).is_some());
+        for (ni, _, _) in first.into_iter().chain(rest) {
             self.add_job(Job::new(NET, ni as u16, None));
         }
     }
@@ -96,6 +98,29 @@ impl Router {
     /// A net with a pour: the pads its fill joins come into the tree together, and a track may end
     /// anywhere in fill the tree has (`fill`).
     pub(crate) fn route_net(&mut self, j: usize) {
+        let net = self.jobs[j].net;
+        // a net of a pair is routed with its mate, by the first of the two (`duo`): a job that is done
+        // was routed so since it was last lifted
+        if let Some(di) = self.duo_of(net) {
+            if self.jobs[j].done {
+                return;
+            }
+            let (lead, mate) = (self.net_job(self.duos[di].p), self.net_job(self.duos[di].n));
+            if let (Some(lead), Some(mate)) = (lead, mate) {
+                if j == mate && self.jobs[lead].done {
+                    // (the lead stands without its mate, routed as a net of its own: both again)
+                    self.lift(lead);
+                }
+                self.route_duo(di, lead, mate);
+                return;
+            }
+        }
+        self.route_tree(j);
+    }
+
+    /// A net's pads joined into a tree (`route_net`). A net with its half of a pair's run on the board
+    /// already (`Job::trunk`) starts its tree at the two ends of that track.
+    pub(crate) fn route_tree(&mut self, j: usize) {
         let net = self.jobs[j].net;
         let pads: Vec<usize> = self.sc.nets[net as usize].pads.clone();
         let n = pads.len();
@@ -163,7 +188,7 @@ impl Router {
         };
         let mut failed = vec![false; n];
         // the tree as it grows
-        let mut g = Grown { joined: vec![false; n], mind: (0..n).map(|i| dist(i, seed, &self.sc)).collect(), tree: Vec::new(), taken: Vec::new(), fill_t: Vec::new(), isles: Vec::new(), ends: Vec::new() };
+        let mut g = Grown { joined: vec![false; n], mind: (0..n).map(|i| if self.jobs[j].trunk.is_some() { f64::MAX } else { dist(i, seed, &self.sc) }).collect(), tree: Vec::new(), taken: Vec::new(), fill_t: Vec::new(), isles: Vec::new(), ends: Vec::new() };
         // pad access nodes whose stub to the pad's centre is drawn already
         let mut stubbed: Vec<(usize, u16, u16)> = Vec::new();
         let (fw, per) = (self.f.w, self.f.w * self.f.h);
@@ -258,7 +283,17 @@ impl Router {
                 }
             }
         };
+        let trunk_ends: Vec<(Node, (f64, f64))> = self.jobs[j].trunk.as_ref().map_or(Vec::new(), |t| t.ends.to_vec());
         match (&pour, big, in_fill) {
+            // (a pair's run: the tree is its two ends, and every pad goes to the nearer; no pad is in it yet)
+            _ if !trunk_ends.is_empty() => {
+                for &(node, at) in &trunk_ends {
+                    g.tree.push(node);
+                    for i in 0..n {
+                        g.mind[i] = g.mind[i].min(hypot(self.sc.pads[pads[i]].x - at.0, self.sc.pads[pads[i]].y - at.1));
+                    }
+                }
+            }
             (Some(_), Some(grp), None) if size.contains_key(&grp) => take(Come::Fill(grp), self, &mut g),
             _ => take(Come::Pad(seed), self, &mut g),
         }

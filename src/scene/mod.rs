@@ -383,7 +383,7 @@ impl Scene {
         say(self.stackup.len(), "stackup layers (thickness, dielectric)");
         say(self.nets.iter().filter(|n| other(n.via, n.drill)).count(), "nets that ask a via other than the board's");
         say(self.nets.iter().filter(|n| n.impedance.is_some()).count() + self.classes.iter().filter(|c| c.impedance.is_some()).count() + self.pairs.iter().filter(|p| p.impedance.is_some()).count(), "impedance targets");
-        say(self.pairs.len(), "differential pairs");
+        say(self.pairs.iter().filter(|p| p.max_skew.is_some() || p.max_uncoupled.is_some()).count(), "limits of a pair (its skew, its length apart)");
         say(self.matches.len(), "match groups");
         say(self.groups.len(), "groups of parts");
         say(self.parts.iter().filter(|p| !p.in_scope).count(), "parts out of scope");

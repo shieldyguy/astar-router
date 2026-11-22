@@ -122,12 +122,17 @@ impl Router {
             round += 1;
             self.pressure *= self.cfg.pressure;
             let mut k = 0;
+            // (the jobs routed in this round: a net of a pair is routed with its mate, and stands)
+            let mut routed: Vec<usize> = Vec::new();
             while k < bad.len() {
                 if self.out_of_time() {
                     break;
                 }
                 let j = bad[k];
                 k += 1;
+                if routed.contains(&j) && self.jobs[j].done {
+                    continue;
+                }
                 let open = !self.jobs[j].done || self.for_room(j);
                 if (!open && !self.clashing(j) && !self.pour_stale(j)) || self.jobs[j].locked {
                     continue;
@@ -143,6 +148,10 @@ impl Router {
                     }
                 }
                 self.route_job(j);
+                routed.push(j);
+                if let Some(d) = self.duo_of(self.jobs[j].net) {
+                    routed.extend([self.duos[d].p, self.duos[d].n].iter().filter_map(|&n| self.net_job(n)));
+                }
             }
         }
         self.stats.rounds = round;
@@ -164,6 +173,21 @@ impl Router {
             }
             bad.sort_by_key(|&j| self.jobs[j].nodes);
             let mut again = self.lift(bad[0]);
+            again.sort();
+            for v in again {
+                self.route_job(v);
+            }
+        }
+        // a pair that stands side by side with a pad of its own still open is given up: its two nets are
+        // routed again as two nets, touching nothing
+        for di in 0..self.duos.len() {
+            let (Some(pj), Some(nj)) = (self.net_job(self.duos[di].p), self.net_job(self.duos[di].n)) else { continue };
+            if self.duos[di].off || self.jobs[pj].trunk.is_none() || !(self.for_room(pj) || self.for_room(nj)) || self.out_of_time() {
+                continue;
+            }
+            self.duos[di].off = true;
+            self.duos[di].said = "routed as two nets: side by side, it left a pad of its own with no way to it".to_string();
+            let mut again = self.lift(pj);
             again.sort();
             for v in again {
                 self.route_job(v);
@@ -235,6 +259,7 @@ impl Router {
             self.jobs[j].paths.clear();
             self.jobs[j].rough = false;
             self.jobs[j].ends = (0, 0);
+            self.jobs[j].trunk = None;
             self.jobs[j].nodes = 0;
             self.jobs[j].clash_cells.clear();
             self.pairs.retain(|p| p.0 != j && p.1 != j);
@@ -261,7 +286,12 @@ impl Router {
 
     /// Before a path of job j is laid: note the jobs whose copper it runs through, and where.
     pub(crate) fn note_clashes(&mut self, j: usize, path: &[(u8, u16, u16)]) {
-        let net = self.jobs[j].net;
+        self.note_clashes_as(j, self.jobs[j].net, path);
+    }
+
+    /// The same for a path found as another net than the job's own: a pair's centre line, which keeps
+    /// more from everything than either of the pair's nets (`duo`).
+    pub(crate) fn note_clashes_as(&mut self, j: usize, net: u16, path: &[(u8, u16, u16)]) {
         let (t_min, half) = (self.t_min(net), self.w_min(net) / 2.0);
         let mut hit: Vec<(u32, u16)> = Vec::new();
         for (i, &(l, y, x)) in path.iter().enumerate() {

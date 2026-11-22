@@ -44,7 +44,7 @@ A net is named by its `name`; `""` is no net. An optional key left out takes the
 | `keepouts` | areas and what they forbid (below) | router; T3 |
 | `copper` | copper already on the board (below) | T3, T6 |
 | `parts` | the parts (below) | T4 |
-| `pairs` | differential pairs (below) | T8 |
+| `pairs` | differential pairs (below) | router (`max_skew`, `max_uncoupled`, `impedance`: nobody) |
 | `match` | groups of nets to make equally long (below) | T9 |
 | `groups` | groups of parts (below) | T4 |
 | `scope` | which nets and parts are in scope (below) | T3 |

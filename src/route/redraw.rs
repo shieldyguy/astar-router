@@ -42,6 +42,8 @@ impl Router {
             job.nodes = 0;
             job.rough = false;
             job.ends = (0, 0);
+            // (a pair's run is no path: it stands as it was laid)
+            self.stand_trunk(j);
             // the nodes where one path of the job ends on another: they stay where they are
             let joints: Vec<super::Node> = paths.iter().flat_map(|p| [p.0[0], p.0[p.0.len() - 1]]).collect();
             for (path, from, to) in &paths {

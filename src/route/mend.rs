@@ -24,6 +24,7 @@ struct Kept {
     pour_ends: Vec<(u32, u32)>,
     walled: Vec<usize>,
     walled_loose: usize,
+    trunk: Option<super::duo::Trunk>,
 }
 
 /// The board's copper as it stands: every job's, and what the router keeps about it.
@@ -56,6 +57,7 @@ impl Router {
                 pour_ends: j.pour_ends.clone(),
                 walled: j.walled.clone(),
                 walled_loose: j.walled_loose,
+                trunk: j.trunk.clone(),
             })
             .collect();
         Board { jobs, deps: self.deps.clone(), net_vias: self.net_vias.clone(), via_owner: self.via_owner.clone() }
@@ -88,6 +90,7 @@ impl Router {
             job.pour_ends = s.pour_ends.clone();
             job.walled = s.walled.clone();
             job.walled_loose = s.walled_loose;
+            job.trunk = s.trunk.clone();
             job.clash_cells.clear();
         }
         self.deps = was.deps;

@@ -196,6 +196,9 @@ pub fn lines(r: &Router, note: &str, read_s: f64, total_s: f64, verbose: bool) -
     if opens.len() > 12 {
         out.push(format!("astar: open: and {} more nets (the plan's notes say which, and why)", opens.len() - 12));
     }
+    for n in r.notes.iter().filter(|n| n.kind == "pair") {
+        out.push(format!("astar: pair: {} and its mate: {}", r.sc.nets[n.net as usize].name, n.detail));
+    }
     for n in r.notes.iter().filter(|n| n.kind == "thin") {
         out.push(format!("astar: thin: {}", n.detail));
     }

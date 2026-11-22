@@ -7,6 +7,7 @@ pub mod egress;
 pub mod exits;
 pub mod fences;
 pub mod ground;
+pub mod pairs;
 pub mod pour;
 
 use crate::route::{Cfg, Node, Router};
@@ -57,7 +58,7 @@ impl Step {
 }
 
 /// Every pass, in the order they run.
-pub const PASSES: &[Pass] = &[ground::PASS, pour::PASS, fences::PASS, exits::PASS, cross::PASS, drops::PASS, crate::route::PASS, crate::finish::tight::PASS, crate::finish::arcs::PASS];
+pub const PASSES: &[Pass] = &[ground::PASS, pour::PASS, fences::PASS, exits::PASS, cross::PASS, drops::PASS, pairs::PASS, crate::route::PASS, crate::finish::tight::PASS, crate::finish::arcs::PASS];
 
 /// The clock entry for what no pass owns: the field, the exact index, the pads' access nodes.
 pub const FIELD: usize = PASSES.len();

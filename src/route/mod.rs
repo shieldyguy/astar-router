@@ -4,6 +4,7 @@ mod access;
 mod cfg;
 mod copper;
 mod drive;
+mod duo;
 mod ends;
 pub(crate) mod exact;
 pub(crate) mod fill;
@@ -11,11 +12,11 @@ mod job;
 mod lay;
 mod mend;
 mod negotiate;
-mod net;
+pub(crate) mod net;
 mod old;
 mod probe;
 mod redraw;
-mod solve;
+pub(crate) mod solve;
 mod wall;
 
 pub use access::Access;
@@ -97,6 +98,9 @@ pub struct Router {
     pub(crate) deps: Vec<Vec<usize>>,
     /// clashes standing now: (the job laid through, the job whose copper was there)
     pub(crate) pairs: Vec<(usize, usize)>,
+    /// the differential pairs routed side by side (`duo`), and what the plan says of those that are not
+    pub(crate) duos: Vec<duo::Duo>,
+    pub(crate) duo_notes: Vec<(u16, String)>,
     /// copper layers that carry tracks
     pub(crate) routable: Vec<usize>,
     pub(crate) t_via: Dist,
@@ -456,6 +460,8 @@ impl Router {
             }
             sc.nets[i].clearance = most;
         }
+        // the pairs that run side by side, each with a net of its own for its centre line (`duo`)
+        let (duos, duo_notes) = duo::plan(&mut sc, cfg.skip.iter().any(|s| s == "pairs"));
         let clr = sc.rules.clearance;
         let (minx, miny, maxx, maxy) = extent(&sc);
         // how far an object's distance must be known: the widest track's half-width plus its clearance, and
@@ -468,6 +474,9 @@ impl Router {
             if n.pads.len() >= 2 {
                 reach = reach.max(n.width / 2.0 + clr.max(n.clearance)).max(via_r + clr.max(n.clearance));
             }
+        }
+        for d in &duos {
+            reach = reach.max(d.width / 2.0 + sc.nets[d.centre as usize].clearance);
         }
         let rmax = reach + pitch + 0.03;
         let mut f = Field::new(minx, miny, maxx, maxy, pitch, nl, rmax, grid_offset(&sc, pitch));
@@ -649,6 +658,8 @@ impl Router {
             hosted,
             deps: Vec::new(),
             pairs: Vec::new(),
+            duos,
+            duo_notes,
             routable,
             t_via,
             via_gap2: (gap * gap).ceil() as i64,

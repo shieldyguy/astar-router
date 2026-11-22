@@ -173,6 +173,11 @@ impl Router {
         let mut corners: Vec<Corner> = Vec::new();
         for (ji, j) in self.jobs.iter().enumerate() {
             for (ti, t) in j.tracks.iter().enumerate() {
+                // (a pair's run keeps its corners: an arc each of the same radius would bring its two
+                // tracks nearer each other in the turn)
+                if j.trunk.as_ref().map_or(false, |k| k.track.pts == t.pts) {
+                    continue;
+                }
                 let lmask = 1u32 << t.layer;
                 for i in 1..t.pts.len().saturating_sub(1) {
                     let (a, p, c) = (t.pts[i - 1], t.pts[i], t.pts[i + 1]);
