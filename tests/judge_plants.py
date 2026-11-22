@@ -86,7 +86,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="astar-plants-") as tmp:
         plan_path = os.path.join(tmp, "plan.json")
         r = subprocess.run([a.astar, "route", scene_path, plan_path], capture_output=True, text=True)
-        if r.returncode not in (0, 1, 3) or not os.path.exists(plan_path):
+        if r.returncode not in (0, 1, 3, 5) or not os.path.exists(plan_path):
             print(f"judge_plants: BROKEN: astar exit {r.returncode}: {r.stderr[-200:]}")
             return 2
         scene, plan = json.load(open(scene_path)), json.load(open(plan_path))

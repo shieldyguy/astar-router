@@ -200,6 +200,9 @@ pub struct OldTrack {
     pub width: f64,
     pub path: Vec<PathPiece>,
     pub locked: bool,
+    /// a footprint's drawing in copper, given the net of the pad it lies round: KiCad joins nothing
+    /// through it, so it is no part of its net's tree (`route::old`), only in the other nets' way
+    pub drawn: bool,
 }
 
 /// (scene 2) A via already on the board. `span`: its first and last copper layer when it is not through.

@@ -189,7 +189,10 @@ impl Drawn {
 
     /// Copper that is no track, for the scene's `copper`: a filled shape is a zone with its fill, a
     /// stroke is a track. Both are locked: they are the footprint's or the board's own drawing.
-    pub fn copper(&self, net: &str, tracks: &mut Vec<J>, zones: &mut Vec<J>) {
+    /// `lent`: the net is not the drawing's own but that of the pad it lies round (a footprint's
+    /// drawing carries none). To KiCad such copper joins nothing, so its stroke is marked `drawn`: it is
+    /// in every other net's way, and a track of its own net still has to reach the pad itself.
+    pub fn copper(&self, net: &str, lent: bool, tracks: &mut Vec<J>, zones: &mut Vec<J>) {
         let closed = matches!(self.geo, Geo::Poly(_) | Geo::Circle(..));
         if closed && self.filled {
             let p = self.points();
@@ -208,7 +211,11 @@ impl Drawn {
         if self.width > 0 {
             let path = self.path();
             if !path.is_empty() {
-                tracks.push(obj(vec![("net", J::Str(net.to_string())), ("layer", J::Str(self.layer.clone())), ("width", J::Num(mm(self.width))), ("path", J::Arr(path)), ("locked", J::Bool(true))]));
+                let mut kv = vec![("net", J::Str(net.to_string())), ("layer", J::Str(self.layer.clone())), ("width", J::Num(mm(self.width))), ("path", J::Arr(path)), ("locked", J::Bool(true))];
+                if lent {
+                    kv.push(("drawn", J::Bool(true)));
+                }
+                tracks.push(obj(kv));
             }
         }
     }

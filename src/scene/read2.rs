@@ -386,8 +386,8 @@ impl Scene {
             let c = O::new(j.get("copper"), "copper".into(), &["tracks", "vias", "zones"])?;
             for (i, t) in c.arr("tracks")?.iter().enumerate() {
                 let at = format!("copper.tracks[{}]", i);
-                let o = O::new(t, at.clone(), &["net", "layer", "width", "path", "locked"])?;
-                copper.tracks.push(OldTrack { net: names.net(o.s_opt("net")?.unwrap_or(""), &at)?, layer: names.layer(o.s("layer")?, &at)?, width: o.f("width")?, path: path(o.arr("path")?, &at)?, locked: o.b("locked")? });
+                let o = O::new(t, at.clone(), &["net", "layer", "width", "path", "locked", "drawn"])?;
+                copper.tracks.push(OldTrack { net: names.net(o.s_opt("net")?.unwrap_or(""), &at)?, layer: names.layer(o.s("layer")?, &at)?, width: o.f("width")?, path: path(o.arr("path")?, &at)?, locked: o.b("locked")?, drawn: o.b("drawn")? });
             }
             for (i, v) in c.arr("vias")?.iter().enumerate() {
                 let at = format!("copper.vias[{}]", i);

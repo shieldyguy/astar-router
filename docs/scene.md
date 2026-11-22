@@ -149,7 +149,9 @@ in a track's way; one that forbids vias alone closes its via sites; one that for
 
 Copper already on the board. An object in scene 2 (1.1 has a list, counted and passed over).
 
-- A track: `layer`, `width`, `path` required; `net` (default none); `locked`.
+- A track: `layer`, `width`, `path` required; `net` (default none); `locked`. `drawn`: a footprint's drawing in copper, given
+  the net of the pad it lies round; KiCad joins nothing through it, so it is in the other nets' way and no
+  part of its own net's tree.
 - A via: `at`, `size`, `drill` required; `layers`: its first and last copper layer when it is blind or
   buried (default: through); `locked`.
 - A zone lies on one layer (a KiCad zone on three layers is three zones here). `layer`, `outline`

@@ -6,7 +6,9 @@
 //! copper overlaps on a layer both are on, by a nanometre or more. That is so of a track whose round end
 //! lies on a pad, of a track that runs over a pad, of two tracks that cross, and of two pads that lie on
 //! each other with no track at all (a pin over the edge of a thermal pad, a hole's pad inside it): pads
-//! that touch are an island too.
+//! that touch are an island too. What a footprint draws in copper round a pad (a tab, an antenna) is not
+//! old copper in this sense: KiCad gives it no net and joins nothing through it, so a track of the pad's
+//! net that ends on it is not joined, and the track goes on to the pad.
 
 use super::{Node, Router};
 use crate::field::sdist;
@@ -85,7 +87,7 @@ impl Router {
         let all: u32 = (1u32 << nl) - 1;
         let mut pieces: Vec<Piece> = Vec::new();
         let mut count = (0, 0);
-        for t in sc.copper.tracks.iter().filter(|t| t.net != 0 && sc.nets[t.net as usize].pads.len() >= 2) {
+        for t in sc.copper.tracks.iter().filter(|t| t.net != 0 && !t.drawn && sc.nets[t.net as usize].pads.len() >= 2) {
             count.0 += 1;
             for piece in &t.path {
                 let pts: Vec<(f64, f64)> = match piece {

@@ -376,7 +376,7 @@ impl Board {
                         }
                         continue;
                     }
-                    dr.copper(touches.first().map_or("", |&i| out.pad_net[i].as_str()), &mut out.tracks, &mut out.zones);
+                    dr.copper(touches.first().map_or("", |&i| out.pad_net[i].as_str()), true, &mut out.tracks, &mut out.zones);
                 } else if dr.layer == "F.CrtYd" || dr.layer == "B.CrtYd" {
                     let r = mm(dr.width) / 2.0;
                     if let Some(bx) = bbox(&dr.points()) {

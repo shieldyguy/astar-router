@@ -228,7 +228,7 @@ impl Board {
                     if dr.layer == "Edge.Cuts" {
                         out.outline.extend(dr.path());
                     } else if self.cu(&dr.layer).is_some() {
-                        dr.copper(&self.net_of(k), &mut out.tracks, &mut out.zones);
+                        dr.copper(&self.net_of(k), false, &mut out.tracks, &mut out.zones);
                     } else if dr.layer == "F.Mask" || dr.layer == "B.Mask" {
                         openings.push(dr);
                     } else if dr.layer == "Margin" {

@@ -84,8 +84,9 @@ def route(astar, scene, plan, log, budget, mem_gb):
     wall = time.time() - t0
     open(log, "w").write(out or "")
     last = ([ln.strip() for ln in (out or "").split("\n") if ln.strip()] or [""])[-1]
-    # astar route: 0 every net joined, 1 nets open, 3 a rule narrowed: a plan each time; 2 the scene refused
-    if p.returncode in (0, 1, 3) and os.path.exists(plan):
+    # astar route: 0 every net joined, 1 nets open, 3 a rule narrowed, 5 joined but KiCad will fault what
+    # astar could not help (a short the board came with): a plan each time; 2 the scene refused
+    if p.returncode in (0, 1, 3, 5) and os.path.exists(plan):
         return None, last, wall
     if p.returncode == 2:
         return "scene refused", last[:300], wall

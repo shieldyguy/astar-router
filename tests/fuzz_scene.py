@@ -224,7 +224,7 @@ def run(astar, scene_path, plan_path, seconds):
         p.communicate()
         return None, f"not in time: still going {seconds + 30} s in"
     lines = [ln.strip() for ln in (out or "").split("\n") if ln.strip()]
-    if p.returncode not in (0, 1, 3):          # astar route: 1 nets open, 3 narrowed: a plan each time; 2 refused
+    if p.returncode not in (0, 1, 3, 5):       # astar route: 1 nets open, 3 narrowed, 5 a fault the board came with: a plan each time; 2 refused
         panic = next((ln for ln in lines if "panicked at" in ln or "astar: BUG" in ln), "")
         after = lines[lines.index(panic) + 1] if panic and lines.index(panic) + 1 < len(lines) else ""
         how = f"signal {-p.returncode}" if p.returncode < 0 else f"exit {p.returncode}"

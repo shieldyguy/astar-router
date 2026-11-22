@@ -44,7 +44,7 @@ def route(astar, scene, plan):
         os.remove(plan)
     r = subprocess.run(["nice", astar, "route", scene, plan], capture_output=True, text=True)
     dt = time.time() - t0
-    if r.returncode not in (0, 1, 3) or not os.path.exists(plan):      # 1: nets open, 3: narrowed; a plan each time
+    if r.returncode not in (0, 1, 3, 5) or not os.path.exists(plan):   # 1: nets open, 3: narrowed, 5: a fault the board came with; a plan each time
         return None, dt, f"astar exit {r.returncode}: {(r.stderr or r.stdout).strip()[-200:]}"
     return json.load(open(plan)), dt, ""
 
