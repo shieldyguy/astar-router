@@ -192,7 +192,9 @@ impl Router {
                     if near(ends.get(&(j.net, t.layer)), p, 1e-4) || near(vias.get(&j.net), p, 1e-4) || self.statics.own_pad_within(p, lmask, j.net, 1e-6) {
                         continue;
                     }
-                    corners.push(Corner { job: ji, track: ti, i, p, u, v, phi, tan: (turn / 2.0).tan(), tmax: l1.min(l2) / 2.0 - 1e-4, failed: None });
+                    // (an arc takes half of each leg at most: two corners on one short leg meet in its
+                    // middle, and nothing is left between them)
+                    corners.push(Corner { job: ji, track: ti, i, p, u, v, phi, tan: (turn / 2.0).tan(), tmax: l1.min(l2) / 2.0, failed: None });
                 }
             }
         }

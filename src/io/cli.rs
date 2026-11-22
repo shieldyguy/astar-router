@@ -144,6 +144,12 @@ pub fn route_board(run: &BoardRun, cfg: &Cfg) -> i32 {
     for n in &laid.notes {
         eprintln!("astar: note: {}", n);
     }
+    // astar fills no zone: what the written board holds as fill is not what KiCad will make of it
+    let pours = asked.copper.zones.iter().filter(|z| z.net != 0 && z.outline.len() >= 3).count();
+    if pours + laid.zones > 0 {
+        let new = if laid.zones > 0 { format!(" ({} of them drawn by astar, with no fill at all)", laid.zones) } else { String::new() };
+        eprintln!("astar: REFILL: {} has {} pours{}, and astar fills none: their fill is as the board came, not round the new copper. Refill before the board is judged or made: kicad-cli pcb drc --refill-zones judges it refilled", run.out, pours + laid.zones, new);
+    }
     // the run's word is checked before it is given: the plan against the scene, by the exact check
     let (said, faults) = crate::check::of_run(&rd.scene, &asked, &plan);
     for line in &said {
