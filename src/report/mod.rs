@@ -159,11 +159,18 @@ impl Router {
         // the copper the router drew for a net: the ground's where the board drew none, and what the run named
         for &(n, l) in &self.poured.clone() {
             let net = &self.sc.nets[n as usize];
-            let what = if net.plane == Some(l) { format!("{} is its plane: the layer is closed to tracks, and every pad of the net goes down to it by a via", self.sc.layers[l]) } else { format!("a pour of it is drawn over the board on {}: the layer stays open to tracks, and the net leans on the fill", self.sc.layers[l]) };
+            let on = &self.sc.layers[l];
+            let what = if net.plane == Some(l) {
+                format!("{} is its plane: the layer is closed to tracks, and every pad of the net goes down to it by a via", on)
+            } else if net.plane.is_some() {
+                format!("a pour of it is drawn over the board on {}, over its plane: it fills what the tracks leave", on)
+            } else {
+                format!("a pour of it is drawn over the board on {}: the layer stays open to tracks, and the net leans on the fill", on)
+            };
             if self.cfg.planes.iter().any(|(name, _)| *name == net.name) {
                 self.note("planned", n, None, format!("{}, as --plane says", what));
             } else if net.class == crate::scene::Class::Ground {
-                self.note("planned", n, None, format!("the board draws no copper for its ground. {} (--ground tracks wires it as a net; --plane gives it other layers)", what));
+                self.note("planned", n, None, format!("{}; the board draws none of its ground there (--ground tracks wires it as a net; --plane says its layers outright)", what));
             }
         }
         // track ends that are not on the line of the pad they end at
