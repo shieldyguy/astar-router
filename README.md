@@ -82,8 +82,10 @@ every run.
    The choice depends on the two boards' search work alone, never on which was done first.
 6. **Search.** Weighted A* over (layer, node): eight compass steps and a via, a price for turns, a bucket
    queue. One search per pad, from the pad to the net's tree.
-   Where the board's via does not fit, the smallest via the board's own rules allow is laid instead
-   (never under 0.3 mm on a 0.15 mm hole), at a price; the plan gives each such via its size.
+   A net lays its class's via (its own, where the net says one; the board's, where neither does;
+   never under the board's least via and hole). Where that does not fit, the smallest via the
+   board's own rules allow is laid instead (never under 0.3 mm on a 0.15 mm hole), at a price; the
+   plan gives every via its size.
    A net keeps its width. Where the full width does not fit, the net may be drawn narrower, down to
    the fab's narrowest track, but a neck costs 4 mm of track to begin and four times the step along it,
    so the net goes round whatever is in its way unless the way round is longer than that. A neck is as
@@ -247,8 +249,7 @@ The plan to close these, and the rest of the distance to KRT, is in `plan/` (sta
 - A differential pair runs side by side on one layer only, and its halves are not length-matched; a
   match group and an impedance target are carried and not used.
 - A clearance asked on one layer only, or between two classes only, is kept everywhere (the largest of
-  them): legal, and more room than the rule asks. A track width for one layer is not used, and every net
-  gets the board's via, whatever its class asks (a class that asks another is named in the notes).
+  them): legal, and more room than the rule asks. A track width for one layer is not used.
 - A net is as wide as its class says. A net that is power by its name and no wider than a signal is
   named (`astar: thin: ...`); nothing widens it but a net class.
 - The tuning is for the 0.1 mm grid, the only one judged by DRC. By its own count: at 0.05 mm dock lands

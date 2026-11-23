@@ -360,6 +360,20 @@ impl Scene {
         });
     }
 
+    /// A net's via (size, drill): its own, else its class's, else the board's; never under the board's
+    /// least via and hole, nor without the least ring.
+    pub fn via_of(&self, net: usize) -> (f64, f64) {
+        let n = &self.nets[net];
+        let c = self.classes.get(n.netclass);
+        let (size, drill) = (n.via.or(c.and_then(|c| c.via)), n.drill.or(c.and_then(|c| c.drill)));
+        if size.is_none() && drill.is_none() {
+            return (self.rules.via, self.rules.drill);
+        }
+        let f = &self.rules.floors;
+        let drill = drill.unwrap_or(self.rules.drill).max(f.drill.unwrap_or(0.0));
+        (size.unwrap_or(self.rules.via).max(f.via.unwrap_or(0.0)).max(drill + 2.0 * f.annular.unwrap_or(0.0)), drill)
+    }
+
     /// What the scene carries that the router does not use yet, one line a thing. A track that starts
     /// using one takes its line out.
     pub fn carried_unused(&self) -> Vec<String> {
@@ -373,15 +387,11 @@ impl Scene {
             say(self.existing_copper, "pieces of copper already on the board");
             return out;
         }
-        // (a class's track width and clearance are its nets'; its via is not used: every net gets the board's)
-        let other = |via: Option<f64>, drill: Option<f64>| via.map_or(false, |v| (v - self.rules.via).abs() > 1e-9) || drill.map_or(false, |d| (d - self.rules.drill).abs() > 1e-9);
-        say(self.classes.iter().filter(|c| other(c.via, c.drill)).count(), &format!("net classes that ask a via other than the board's {}/{} (every net gets the board's)", self.rules.via, self.rules.drill));
         say(self.rules.layer_rules.iter().chain(self.classes.iter().flat_map(|c| c.layer_rules.iter())).filter(|r| r.track.is_some()).count(), "track widths for one layer");
         let f = &self.rules.floors;
         // (the floors of track, via, drill and annular ring are used: a neck, the small via)
         say([f.clearance, f.hole_to_hole, f.edge].iter().filter(|v| v.is_some()).count(), "fab floors (of clearance, hole to hole and edge)");
         say(self.stackup.len(), "stackup layers (thickness, dielectric)");
-        say(self.nets.iter().filter(|n| other(n.via, n.drill)).count(), "nets that ask a via other than the board's");
         say(self.nets.iter().filter(|n| n.impedance.is_some()).count() + self.classes.iter().filter(|c| c.impedance.is_some()).count() + self.pairs.iter().filter(|p| p.impedance.is_some()).count(), "impedance targets");
         say(self.pairs.iter().filter(|p| p.max_skew.is_some() || p.max_uncoupled.is_some()).count(), "limits of a pair (its skew, its length apart)");
         say(self.matches.len(), "match groups");

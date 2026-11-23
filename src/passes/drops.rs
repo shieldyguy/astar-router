@@ -177,7 +177,8 @@ impl Router {
         if (bx1 - bx0).min(by1 - by0) < self.cfg.vip_mm {
             return None;
         }
-        let need = self.sc.rules.via / 2.0 + 0.05;
+        let kind = self.kind(net);
+        let need = kind.size / 2.0 + 0.05;
         let (x0, y0) = self.f.node_near(bx0, by0);
         let (x1, y1) = self.f.node_near(bx1, by1);
         let mut cand: Vec<(f64, usize, usize)> = Vec::new();
@@ -189,7 +190,7 @@ impl Router {
                 }
                 // (a pad that holds its footprint's own thermal vias: none of ours on top of them)
                 let i = y * self.f.w + x;
-                if self.hole_near.get(i >> 6).map_or(false, |w| w & (1 << (i & 63)) != 0) {
+                if kind.hole_near.get(i >> 6).map_or(false, |w| w & (1 << (i & 63)) != 0) {
                     continue;
                 }
                 let vl = self.costs.via_net[y * self.f.w + x];
@@ -202,13 +203,13 @@ impl Router {
                 }
                 if !(0..self.f.nl).all(|ll| {
                     let c = &self.f.cells[self.f.idx(ll, y, x)];
-                    sdist(c, net) >= self.t_via && ddist(c, net) >= self.t_via
+                    sdist(c, net) >= kind.t && ddist(c, net) >= kind.t
                 }) {
                     continue;
                 }
                 if self.net_vias[net as usize].iter().any(|&(vx, vy)| {
                     let (dx, dy) = (vx as i64 - x as i64, vy as i64 - y as i64);
-                    dx * dx + dy * dy < self.via_gap2
+                    dx * dx + dy * dy < kind.gap2
                 }) {
                     continue;
                 }

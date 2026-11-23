@@ -54,6 +54,7 @@ impl Router {
 
     fn search_for(&mut self, ask: &Ask, insist: bool) -> Outcome {
         let net = ask.net;
+        let kind = self.kind_of[net as usize] as usize;
         let price = if insist { 1.0 } else { self.pressure };
         let tight = super::exact::Tight { statics: &self.statics, clr: &self.clr_tab, more: &self.more_tab };
         let q = Query {
@@ -66,8 +67,8 @@ impl Router {
             shun: &self.shun,
             t_nom: self.t_nom(net),
             t_via: self.t_via_of(net),
-            t_via_fixed: if self.t_via_of(net) > self.t_via { self.t_via_of(net) } else { 0 },
-            t_via_s: self.t_via_s,
+            t_via_fixed: if self.t_via_of(net) > self.kinds[kind].t { self.t_via_of(net) } else { 0 },
+            t_via_s: if self.kinds[kind].small { self.t_via_s } else { 0 },
             small_cost: (ask.via_mm * 500.0) as u32,
             sources: &ask.sources,
             tbox: ask.tbox,
@@ -85,7 +86,7 @@ impl Router {
             weight256_soft: (self.cfg.weight_soft * 256.0).round() as u64,
             own_vias: &ask.own_vias,
             own_pads: &ask.own_pads,
-            via_gap2: self.via_gap2,
+            via_gap2: self.kinds[kind].gap2,
             via_steps: self.via_steps,
             max_pops: ask.cap,
         };
@@ -94,7 +95,7 @@ impl Router {
         // (as `sites_of`, field by field: the search is borrowed too)
         let (sites, small) = match self.plane_sites.get(&net) {
             Some(s) if ask.plane_goal.is_some() => (&s[..], self.plane_sites_s.get(&net).map_or(&[][..], |v| &v[..])),
-            _ => (&self.via_ok[..], &self.via_ok_s[..]),
+            _ => (&self.kinds[kind].ok[..], &self.via_ok_s[..]),
         };
         let out = self.search.run(&self.f, &self.costs, &self.wear, sites, small, &q);
         self.stats.search_s += ts.elapsed().as_secs_f64();
@@ -123,7 +124,7 @@ impl Router {
                 return (s, self.plane_sites_s.get(&ask.net).map_or(&[][..], |v| &v[..]));
             }
         }
-        (&self.via_ok, &self.via_ok_s[..])
+        (&self.kind(ask.net).ok, &self.via_ok_s[..])
     }
 
     /// Does the board itself leave this connection no way, whatever the other nets do? A flood from its
@@ -139,7 +140,7 @@ impl Router {
         // (every node a search may stand on: down to where the grid is sure there is no room)
         let t = self.t_low(net);
         let (sites, small) = self.sites_of(ask);
-        let small_too = self.t_via_s != 0 && self.t_via_of(net) == self.t_via;
+        let small_too = self.t_via_s != 0 && self.kind(net).small && self.t_via_of(net) == self.kind(net).t;
         let site = |k: usize| sites[k >> 6] & (1 << (k & 63)) != 0 || (small_too && small.get(k >> 6).map_or(false, |m| m & (1 << (k & 63)) != 0));
         let plane = ask.plane_goal.map(|p| p as usize);
         let keep = self.keeps.get(&net);

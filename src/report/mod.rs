@@ -61,10 +61,14 @@ impl Router {
 
     /// What the end of a run says by itself: the nets left open and the widths narrowed.
     pub(crate) fn close_report(&mut self) {
-        // vias laid at the board's least size where the class's own did not fit
+        // vias laid at the board's least size where the net's own did not fit
         let (small, all): (usize, usize) = (self.jobs.iter().map(|j| j.small.len()).sum(), self.jobs.iter().map(|j| j.vias.len()).sum());
         if let (true, Some((size, drill))) = (small > 0, self.via_small) {
-            self.note("small via", 0, None, format!("{} of {} vias are {} mm on a {} mm hole, the least the board allows, where the {} mm via did not fit", small, all, crate::json::num(size), crate::json::num(drill), crate::json::num(self.sc.rules.via)));
+            let mut own: Vec<f64> = self.jobs.iter().filter(|j| !j.small.is_empty()).map(|j| self.kind(j.net).size).collect();
+            own.sort_by(f64::total_cmp);
+            own.dedup();
+            let own: Vec<String> = own.iter().map(|v| crate::json::num(*v)).collect();
+            self.note("small via", 0, None, format!("{} of {} vias are {} mm on a {} mm hole, the least the board allows, where the {} mm via did not fit", small, all, crate::json::num(size), crate::json::num(drill), own.join(" or ")));
         }
         // the pairs: laid side by side, or routed as two nets and why
         let said: Vec<(u16, String)> = self.duos.iter().filter(|d| !d.said.is_empty()).map(|d| (d.p, d.said.clone())).chain(self.duo_notes.iter().cloned()).collect();

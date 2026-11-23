@@ -149,7 +149,6 @@ impl Router {
         // per (net, layer): where tracks end; per net: its vias
         let mut ends: HashMap<(u16, u8), Vec<(f64, f64)>> = HashMap::new();
         let mut vias: HashMap<u16, Vec<(f64, f64)>> = HashMap::new();
-        let vr = self.via_r;
         for j in &self.jobs {
             let mut f = Vec::with_capacity(j.tracks.len());
             for t in &j.tracks {
@@ -164,7 +163,7 @@ impl Router {
             first.push(f);
             for &(x, y) in &j.vias {
                 let p = (self.f.wx(x as usize), self.f.wy(y as usize));
-                idx.add(Seg { a: p, b: p, half: if j.small.contains(&(x, y)) { self.via_r_s } else { vr }, net: j.net, lmask: all });
+                idx.add(Seg { a: p, b: p, half: if j.small.contains(&(x, y)) { self.via_r_s } else { self.kind(j.net).r }, net: j.net, lmask: all });
                 vias.entry(j.net).or_default().push(p);
             }
         }

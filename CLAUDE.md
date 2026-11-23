@@ -66,8 +66,8 @@ Read its notes on stderr: it says what it ignored, but the exit code does not ch
 
 - **Width is the board's to say.** A net is as wide as its class and nothing more: give rails a net class
   with a track width. A net that is power by name and at signal width is named (`astar: thin: ...`), not
-  widened. A class's own via size is ignored (every net gets the board's via; the notes say when a class
-  asks another). An exposed pad gets one via in itself, with no paste window over it.
+  widened. A net lays its class's via (size and drill), the board's where its class says none. An
+  exposed pad gets one via in itself, with no paste window over it.
 - **A differential pair runs side by side on its pads' layer** between the two parts both nets have a
   pad on, at the pair's width and gap. One that cannot is routed as two plain nets and named
   (`astar: pair: ...`); `--skip pairs` does that for all. No length matching, no impedance.

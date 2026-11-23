@@ -58,7 +58,7 @@ impl Router {
             }
             let vi = y * self.f.w + x;
             let vl = self.costs.via_net[vi];
-            if self.via_ok[vi >> 6] & (1 << (vi & 63)) != 0 && (vl == 0 || vl == net) {
+            if self.kind(net).ok[vi >> 6] & (1 << (vi & 63)) != 0 && (vl == 0 || vl == net) {
                 vias += 1;
                 for &l2 in &self.routable {
                     let i = self.f.idx(l2, y, x);

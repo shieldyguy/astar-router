@@ -147,7 +147,7 @@ impl Router {
             let end = (g.0 + u.0 * reach, g.1 + u.1 * reach);
             let (x0, y0) = self.f.node_near(g.0.min(end.0) - 1.0, g.1.min(end.1) - 1.0);
             let (x1, y1) = self.f.node_near(g.0.max(end.0) + 1.0, g.1.max(end.1) + 1.0);
-            let mouth = self.sc.rules.via / 2.0 + self.net_clr(net) + half + 0.01;
+            let mouth = self.kind(net).size / 2.0 + self.net_clr(net) + half + 0.01;
             let mouth_end = (g.0 + u.0 * 0.5, g.1 + u.1 * 0.5);
             for y in y0..=y1 {
                 for x in x0..=x1 {

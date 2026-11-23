@@ -189,17 +189,21 @@ impl Router {
         self.plane_areas.get(&net).map_or(true, |a| a.holds(px, py))
     }
 
-    /// The via sites of the class's via, and of the smaller one the board allows where it allows one.
+    /// The via sites of each via the nets lay, and of the smaller one the board allows where it allows one.
     pub(crate) fn find_via_sites(&mut self) {
-        let (via_ok, hole_near, planes, areas) = self.sites_for(self.t_via, self.sc.rules.via, self.sc.rules.drill);
-        self.via_ok = via_ok;
-        self.hole_near = hole_near;
-        self.plane_sites = planes;
-        self.plane_areas = areas;
+        for k in 0..self.kinds.len() {
+            let (ok, hole_near, planes, areas) = self.sites_for(self.kinds[k].t, self.kinds[k].size, self.kinds[k].drill);
+            self.kinds[k].ok = ok;
+            self.kinds[k].hole_near = hole_near;
+            // (a plane net's sites and its plane's reach are those of its own via)
+            let mine = |n: &u16| self.kind_of[*n as usize] as usize == k;
+            self.plane_sites.extend(planes.into_iter().filter(|(n, _)| mine(n)));
+            self.plane_areas.extend(areas.into_iter().filter(|(n, _)| mine(n)));
+        }
         if let Some((size, drill)) = self.via_small {
             let (ok, _, planes, _) = self.sites_for(self.t_via_s, size, drill);
             self.via_ok_s = ok;
-            self.plane_sites_s = planes;
+            self.plane_sites_s = planes.into_iter().filter(|(n, _)| self.kinds[self.kind_of[*n as usize] as usize].small).collect();
         }
     }
 

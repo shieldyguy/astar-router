@@ -307,7 +307,7 @@ pub fn find(r: &Router) -> Gaps {
             if v == 0 || regions[v as usize - 1].open {
                 continue;
             }
-            if !(0..f.nl).all(|ll| f.cells[ll * f.w * f.h + i].sd1 >= r.t_via) {
+            if !(0..f.nl).all(|ll| f.cells[ll * f.w * f.h + i].sd1 >= r.kinds[0].t) {
                 continue;
             }
             let (x, y) = ((i % f.w) as i64, (i / f.w) as i64);

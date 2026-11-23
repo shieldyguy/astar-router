@@ -137,7 +137,7 @@ pub fn via_site(r: &Router, net: u16, x: usize, y: usize, dynamic: bool) -> bool
     }
     (0..f.nl).all(|l| {
         let c = &f.cells[f.idx(l, y, x)];
-        c.sd1 >= r.t_via && (!dynamic || ddist(c, net) >= r.t_via)
+        c.sd1 >= r.kind(net).t && (!dynamic || ddist(c, net) >= r.kind(net).t)
     })
 }
 
@@ -406,7 +406,7 @@ fn in_pad(r: &Router, d: &Demand, out: &mut Vec<Cand>) {
         return;
     }
     let l = if pad.back { f.nl - 1 } else { 0 };
-    let need = r.sc.rules.via / 2.0 + 0.05;
+    let need = r.kind(pad.net).size / 2.0 + 0.05;
     let (x0, y0) = f.node_near(bx0, by0);
     let (x1, y1) = f.node_near(bx1, by1);
     let mut best: Option<(f64, usize, usize)> = None;
@@ -414,7 +414,7 @@ fn in_pad(r: &Router, d: &Demand, out: &mut Vec<Cand>) {
         for x in x0..=x1 {
             let (px, py) = (f.wx(x), f.wy(y));
             let vl = r.costs.via_net[y * f.w + x];
-            if pad.shape.depth(px, py) < need || (vl != 0 && vl != pad.net) || !(0..f.nl).all(|ll| sdist(&f.cells[f.idx(ll, y, x)], pad.net) >= r.t_via) {
+            if pad.shape.depth(px, py) < need || (vl != 0 && vl != pad.net) || !(0..f.nl).all(|ll| sdist(&f.cells[f.idx(ll, y, x)], pad.net) >= r.kind(pad.net).t) {
                 continue;
             }
             let dist = hypot(px - pad.x, py - pad.y);

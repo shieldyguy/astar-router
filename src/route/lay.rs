@@ -258,7 +258,7 @@ impl Router {
         for &(x, y) in &vias {
             let (px, py) = (self.f.wx(x as usize), self.f.wy(y as usize));
             let small = self.via_is_small(net, x as usize, y as usize);
-            let vr = if small { self.via_r_s } else { self.via_r } + more;
+            let vr = if small { self.via_r_s } else { self.kind(net).r } + more;
             if small {
                 self.jobs[j].small.push((x, y));
             }

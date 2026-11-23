@@ -233,7 +233,7 @@ mod tests {
             tight: &tight,
             shun: &[],
             t_nom: r.t_nom(1),
-            t_via: r.t_via,
+            t_via: r.kinds[0].t,
             t_via_s: 0,
             small_cost: 0,
             t_via_fixed: 0,
@@ -253,11 +253,11 @@ mod tests {
             weight256_soft: 256,
             own_vias: &[],
             own_pads: &[],
-            via_gap2: r.via_gap2,
+            via_gap2: r.kinds[0].gap2,
             via_steps: r.via_steps,
             max_pops: u64::MAX,
         };
-        let out = r.search.run(&r.f, &r.costs, &r.wear, &r.via_ok, &[], &q);
+        let out = r.search.run(&r.f, &r.costs, &r.wear, &r.kinds[0].ok, &[], &q);
         r.search.clear_targets();
         match out {
             Outcome::Found(_, c, _) => c,

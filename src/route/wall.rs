@@ -15,7 +15,7 @@ impl Router {
         let pad = &self.sc.pads[p];
         let net = pad.net;
         let t = self.t_low(net);
-        let site = |k: usize| self.via_ok.get(k >> 6).map_or(false, |m| m & (1 << (k & 63)) != 0);
+        let site = |k: usize| self.kind(net).ok.get(k >> 6).map_or(false, |m| m & (1 << (k & 63)) != 0);
         let keep = self.keeps.get(&net);
         let off = |n: usize| keep.map_or(false, |k| k.off(n / per, f.wx((n % per) % w), f.wy((n % per) / w)));
         // where the flood was stopped: (how far from the pad, the node, by the net's own layer rule),

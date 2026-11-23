@@ -47,10 +47,8 @@ pub fn plan_json(r: &Router, note: &str, read_s: f64, total_s: f64) -> String {
                     o.push_str(", ");
                 }
                 fv = false;
-                // every via says its size: the board's via, or the smaller one where that was laid. (A
-                // class's own via size is not used yet; a plan that left the size out would be laid at the
-                // board's and checked at the class's.)
-                let (size, drill) = r.via_small.filter(|_| j.small.contains(&(x, y))).unwrap_or((r.sc.rules.via, r.sc.rules.drill));
+                // every via says its size: its net's via, or the smaller one where that was laid
+                let (size, drill) = r.via_small.filter(|_| j.small.contains(&(x, y))).unwrap_or((r.kind(j.net).size, r.kind(j.net).drill));
                 let _ = write!(o, "{{\"at\": [{}, {}], \"size\": {}, \"drill\": {}}}", num(r.f.wx(x as usize)), num(r.f.wy(y as usize)), num(size), num(drill));
             }
         }

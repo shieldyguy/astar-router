@@ -40,6 +40,24 @@ use std::time::Instant;
 /// A node of the grid: (layer, y, x).
 pub type Node = (u8, u16, u16);
 
+/// One via the nets here lay: the board's, or a net class's.
+pub(crate) struct ViaKind {
+    pub size: f64,
+    pub drill: f64,
+    /// the radius round its middle that other nets keep their clearance from
+    pub r: f64,
+    /// its threshold at the board's clearance
+    pub t: Dist,
+    /// where it may stand as far as what stays goes
+    pub ok: Vec<u64>,
+    /// per node, a bit: its hole here would stand too near another hole (the hole-to-hole rule)
+    pub hole_near: Vec<u64>,
+    /// how near two of one net may stand, in nodes, squared
+    pub gap2: i64,
+    /// is the board's least via smaller than this one
+    pub small: bool,
+}
+
 pub struct Router {
     pub sc: Scene,
     pub f: Field,
@@ -57,23 +75,21 @@ pub struct Router {
     pub(crate) net_vias: Vec<Vec<(u16, u16)>>,
     /// per net with a plane: the centre nodes of its through-hole pads (already in the plane)
     pub(crate) net_tht: Vec<Vec<(u16, u16)>>,
-    pub(crate) via_ok: Vec<u64>,
-    /// per net with a plane that a zone of the board draws: the via sites that stand inside that zone.
-    /// A drop outside it would reach the plane's layer and no copper.
-    /// the radius round a via's middle that other nets keep their clearance from
-    pub(crate) via_r: f64,
-    /// the smaller via the board allows (size, drill), laid where the class's own does not fit; and the
+    /// the vias the nets here ask for, the board's own first, and per net which of them is its
+    pub(crate) kinds: Vec<ViaKind>,
+    pub(crate) kind_of: Vec<u8>,
+    /// the smaller via the board allows (size, drill), laid where a net's own does not fit; and the
     /// same radius, threshold and sites for it (None, 0 and empty when the board allows none smaller)
     pub via_small: Option<(f64, f64)>,
     pub(crate) via_r_s: f64,
     pub(crate) t_via_s: Dist,
     pub(crate) via_ok_s: Vec<u64>,
     pub(crate) plane_sites_s: HashMap<u16, Vec<u64>>,
+    /// per net with a plane that a zone of the board draws: the sites of its via that stand inside that
+    /// zone. A drop outside it would reach the plane's layer and no copper.
     pub(crate) plane_sites: HashMap<u16, Vec<u64>>,
     /// where each plane net's plane is, for a via that stands in a pad of its own (`access::PlaneArea`)
     pub(crate) plane_areas: HashMap<u16, access::PlaneArea>,
-    /// per node, a bit: a via here would stand too near another hole (the hole-to-hole rule)
-    pub(crate) hole_near: Vec<u64>,
     /// what never changes about each net's pours (`fill`), for the nets that have one
     pub(crate) pours: HashMap<u16, fill::PourBase>,
     /// what never changes about the fill of each plane a zone draws (`fill`, `Router::relieve`)
@@ -103,8 +119,6 @@ pub struct Router {
     pub(crate) duo_notes: Vec<(u16, String)>,
     /// copper layers that carry tracks
     pub(crate) routable: Vec<usize>,
-    pub(crate) t_via: Dist,
-    pub(crate) via_gap2: i64,
     pub(crate) via_steps: u8,
     /// rails this router chose to pour: (net, layer)
     pub poured: Vec<(u16, usize)>,
@@ -358,12 +372,17 @@ impl Router {
             _ => w,
         }
     }
-    /// The via threshold of a net: the board's, or wider when the net asks more clearance than the board.
+    /// The via a net lays: its class's, the board's where the class says none.
+    pub(crate) fn kind(&self, net: u16) -> &ViaKind {
+        &self.kinds[self.kind_of[net as usize] as usize]
+    }
+    /// The via threshold of a net: its via's, or wider when the net asks more clearance than the board.
     pub(crate) fn t_via_of(&self, net: u16) -> Dist {
+        let k = self.kind(net);
         if self.net_clr(net) > self.sc.rules.clearance {
-            Self::thr(self.cfg.pitch, self.via_r, self.net_clr(net), false)
+            Self::thr(self.cfg.pitch, k.r, self.net_clr(net), false)
         } else {
-            self.t_via
+            k.t
         }
     }
     /// How much further than the board's clearance other nets keep from this net's copper.
@@ -373,13 +392,14 @@ impl Router {
     pub(crate) fn via_is_small(&self, net: u16, x: usize, y: usize) -> bool {
         let i = y * self.f.w + x;
         let bit = |m: &[u64]| m.get(i >> 6).map_or(false, |w| w & (1 << (i & 63)) != 0);
-        let sm = self.t_via_s != 0 && self.t_via_of(net) == self.t_via && bit(&self.via_ok_s);
+        let k = self.kind(net);
+        let sm = self.t_via_s != 0 && k.small && self.t_via_of(net) == k.t && bit(&self.via_ok_s);
         if !sm {
             return false;
         }
-        let big = bit(&self.via_ok);
+        let big = bit(&k.ok);
         let free = |t: Dist| (0..self.f.nl).all(|l| crate::field::ddist(&self.f.cells[self.f.idx(l, y, x)], net) >= t);
-        if big && free(self.t_via) {
+        if big && free(k.t) {
             false
         } else if free(self.t_via_s) {
             true
@@ -468,11 +488,26 @@ impl Router {
         // a via's plus the largest clearance a net asks
         // what other nets keep their clearance from round a via: its copper, or more where the board asks
         // more room round a hole than the via's ring and the clearance give
-        let via_r = (sc.rules.via / 2.0).max(sc.rules.drill / 2.0 + sc.rules.hole_clearance - clr);
-        let mut reach: f64 = via_r + clr;
-        for n in &sc.nets {
+        let via_r = |size: f64, drill: f64| (size / 2.0).max(drill / 2.0 + sc.rules.hole_clearance - clr);
+        // the vias: the board's first, then each other one a net here asks for
+        let mut sizes: Vec<(f64, f64)> = vec![(sc.rules.via, sc.rules.drill)];
+        let mut kind_of = vec![0u8; sc.nets.len()];
+        for i in 1..sc.nets.len() {
+            if sc.nets[i].pads.len() < 2 {
+                continue;
+            }
+            let v = sc.via_of(i);
+            let k = sizes.iter().position(|s| (s.0 - v.0).abs() < 1e-9 && (s.1 - v.1).abs() < 1e-9).unwrap_or_else(|| {
+                sizes.push(v);
+                sizes.len() - 1
+            });
+            kind_of[i] = k.min(255) as u8;
+        }
+        let mut reach: f64 = via_r(sizes[0].0, sizes[0].1) + clr;
+        for (i, n) in sc.nets.iter().enumerate() {
             if n.pads.len() >= 2 {
-                reach = reach.max(n.width / 2.0 + clr.max(n.clearance)).max(via_r + clr.max(n.clearance));
+                let v = sizes[kind_of[i] as usize];
+                reach = reach.max(n.width / 2.0 + clr.max(n.clearance)).max(via_r(v.0, v.1) + clr.max(n.clearance));
             }
         }
         for d in &duos {
@@ -591,14 +626,14 @@ impl Router {
             f.stamp_static(&o.shape, o.lmask, o.net, exact::stamped(o.extra, cfg.pitch, low_half));
         }
 
-        let t_via = Self::thr(pitch, via_r, clr, false);
         // the smaller via: the board's least, never under what a fab drills (0.3 mm on a 0.15 mm hole)
-        // and never without its ring
+        // and never without its ring; for the nets whose own via is larger than it
         let fl = &sc.rules.floors;
         let drill_s = fl.drill.unwrap_or(sc.rules.drill).min(sc.rules.drill).max(0.15);
         let size_s = fl.via.unwrap_or(sc.rules.via).max(drill_s + 2.0 * fl.annular.unwrap_or(0.1)).max(0.3);
-        let via_small = if size_s < sc.rules.via - 1e-9 && drill_s <= sc.rules.drill + 1e-9 { Some((size_s, drill_s)) } else { None };
-        let via_r_s = via_small.map_or(0.0, |(s, d)| (s / 2.0).max(d / 2.0 + sc.rules.hole_clearance - clr));
+        let smaller = |v: &(f64, f64)| size_s < v.0 - 1e-9 && drill_s <= v.1 + 1e-9;
+        let via_small = if sizes.iter().any(smaller) { Some((size_s, drill_s)) } else { None };
+        let via_r_s = via_small.map_or(0.0, |(s, d)| via_r(s, d));
         let t_via_s = if via_small.is_some() { Self::thr(pitch, via_r_s, clr, false) } else { 0 };
         let plane_layers: Vec<usize> = sc.nets.iter().enumerate().filter(|(i, _)| !hosted.contains(&(*i as u16))).filter_map(|(_, n)| n.plane).collect();
         let routable: Vec<usize> = (0..nl).filter(|l| !plane_layers.contains(l)).collect();
@@ -619,11 +654,20 @@ impl Router {
         let nn = sc.nets.len();
         // two vias' holes keep the board's hole to hole distance, whatever their nets: by the widest hole
         // a via may have here (`Field::holes`, kept as vias are laid and lifted)
-        let hole_reach = sc.rules.hole_to_hole.map_or(0.0, |h2h| sc.rules.drill.max(via_small.map_or(0.0, |v| v.1)) + h2h + 0.005);
+        let widest = sizes.iter().map(|v| v.1).fold(via_small.map_or(0.0, |v| v.1), f64::max);
+        let hole_reach = sc.rules.hole_to_hole.map_or(0.0, |h2h| widest + h2h + 0.005);
         let mut f = f;
         f.hole_reach = hole_reach;
         // (two of one net: a via's width and a little more apart, and no nearer than their holes may be)
-        let gap = (sc.rules.via + 0.1).max(hole_reach) / pitch;
+        // (two of one net: a via's width and a little more apart, and no nearer than their holes may be)
+        let via_gap = sizes.iter().map(|v| (v.0 + 0.1).max(hole_reach) / pitch).fold(0.0, f64::max);
+        let kinds: Vec<ViaKind> = sizes
+            .iter()
+            .map(|v| {
+                let gap = (v.0 + 0.1).max(hole_reach) / pitch;
+                ViaKind { size: v.0, drill: v.1, r: via_r(v.0, v.1), t: Self::thr(pitch, via_r(v.0, v.1), clr, false), ok: Vec::new(), hole_near: Vec::new(), gap2: (gap * gap).ceil() as i64, small: smaller(v) }
+            })
+            .collect();
         let mut r = Router {
             sc,
             f,
@@ -636,8 +680,8 @@ impl Router {
             strict: false,
             net_vias: vec![Vec::new(); nn],
             net_tht: vec![Vec::new(); nn],
-            via_ok: Vec::new(),
-            via_r,
+            kinds,
+            kind_of,
             via_small,
             via_r_s,
             t_via_s,
@@ -645,7 +689,6 @@ impl Router {
             plane_sites_s: HashMap::new(),
             plane_sites: HashMap::new(),
             plane_areas: HashMap::new(),
-            hole_near: Vec::new(),
             pours: HashMap::new(),
             plane_bases: HashMap::new(),
             acc: Vec::new(),
@@ -661,9 +704,7 @@ impl Router {
             duos,
             duo_notes,
             routable,
-            t_via,
-            via_gap2: (gap * gap).ceil() as i64,
-            via_steps: (gap.ceil() as u8).saturating_add(2),
+            via_steps: (via_gap.ceil() as u8).saturating_add(2),
             poured,
             limit: None,
             progress: None,
