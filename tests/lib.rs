@@ -15,7 +15,8 @@ fn a_scene_is_routed_through_the_library() {
     assert_eq!(routed.exit_code(true), astar::exit::NARROWED);
     let plan = astar::json::parse(&routed.plan()).unwrap();
     assert_eq!(plan.get("nets").arr().len(), 6);
-    assert_eq!(plan.get("planes").arr().len(), 1);
+    // (the ground plane the board draws, and the pour astar gives the ground on each outer layer)
+    assert_eq!(plan.get("planes").arr().len(), 3);
     assert!(plan.get("notes").arr().iter().any(|n| n.get("kind").s() == Some("narrowed") && n.get("net").s() == Some("VCC")));
     assert!(routed.seconds > 0.0);
     // the same scene again: the same plan, but for its seconds

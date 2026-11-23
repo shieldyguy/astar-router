@@ -25,8 +25,9 @@ const USAGE: &str = "usage: astar route IN.kicad_pcb -o OUT.kicad_pcb [--plan PL
          --plane NET=LAYER: the net's copper, said outright (--plane 'GND=In1.Cu,+3V3=In2.Cu'): an inner layer is
                       its plane (closed to tracks, every pad of the net a via down), an outer layer gets
                       its pour over the whole board (open to tracks; the net leans on the fill)
-         --ground tracks: a ground the board draws no pour or plane for is wired as a net. Left alone, it
-                      gets copper: a free inner layer as its plane, else a pour on the side with fewer parts
+         --ground tracks: the ground is wired as a net and nothing is drawn for it. Left alone, it gets
+                      what the board does not draw: a free inner layer as its plane and a pour on each
+                      outer layer over it, or with no inner layer a pour on the side with fewer parts
          --route-on NET=LAYER: the net's tracks run on these layers only (--route-on 'CLK*=B.Cu'); its vias go
                       through every layer as always. A pad of it on another layer is left by a stub to a
                       via, no longer than --stub

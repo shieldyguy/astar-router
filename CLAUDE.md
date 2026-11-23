@@ -49,8 +49,9 @@ asked: `git push origin main:release` builds, tests and publishes `build-<sha12>
 - A net left open says what is in its way: `astar: open: NET: ...` names the pad or keep-out that shuts
   a pad in, or the nets whose copper the nearest way runs through, with the place.
 - Ground and planes. A pour or plane drawn on the board is used as drawn. A ground with nothing drawn
-  gets copper from astar (`astar: planned: ...` says what): the first free inner layer as its plane, or
-  on a two-layer board a pour on the side with fewer parts, written to OUT as a zone. The busiest rail
+  gets copper from astar (`astar: planned: ...` says what): the first free inner layer as its plane and
+  a pour on each outer layer over it (the house way), or on a two-layer board a pour on the side with
+  fewer parts, written to OUT as zones. The busiest rail
   gets the next free inner layer when the board still routes whole (`--pour 0`: never). Say it yourself
   with `--plane 'GND=In1.Cu,+3V3=In2.Cu'` (inner layer: plane; outer layer: pour; `GND=In1.Cu+B.Cu` both).
   A plane or pour astar draws meets pads by reliefs (10 mil spokes over a 10 mil gap); a through-hole

@@ -103,16 +103,16 @@ fn four_layers_no_ground() -> Scene {
 }
 
 #[test]
-fn a_ground_the_board_draws_nothing_for_gets_the_first_free_inner_layer() {
+fn a_ground_the_board_draws_nothing_for_gets_the_first_free_inner_layer_and_both_sides() {
     let planes_of = |cfg: &Cfg| -> Vec<(String, String, bool)> {
         let routed = route(four_layers_no_ground(), cfg).unwrap();
         let p = astar::json::parse(&routed.plan()).unwrap();
         p.get("planes").arr().iter().map(|q| (q.get("net").s().unwrap().to_string(), q.get("layer").s().unwrap().to_string(), q.get("pour").b())).collect()
     };
     let one = |n: &str, l: &str, pour: bool| (n.to_string(), l.to_string(), pour);
-    // the ground first, then the rail on the next
     let auto = planes_of(&Cfg { two_ways: false, ..Cfg::default() });
-    assert_eq!(auto, vec![one("GND", "In1.Cu", false), one("VCC", "In2.Cu", false)]);
+    // the ground first, its plane and a pour over it on each side, then the rail on the next layer
+    assert_eq!(auto, vec![one("GND", "In1.Cu", false), one("GND", "F.Cu", true), one("GND", "B.Cu", true), one("VCC", "In2.Cu", false)]);
     // said outright: the ground on the other inner layer and a pour of it on the back besides
     let said = planes_of(&Cfg { planes: vec![("GND".into(), vec!["In2.Cu".into(), "B.Cu".into()])], pour_pads: 0, ..Cfg::default() });
     assert_eq!(said, vec![one("GND", "In2.Cu", false), one("GND", "B.Cu", true)]);

@@ -184,12 +184,15 @@ impl Router {
         self.sc.copper.zones.iter().filter(|z| z.net == net && z.outline.len() >= 3 && !(z.locked && z.min_width == Some(0.0)) && self.routable.contains(&z.layer)).collect()
     }
 
-    /// The zone that draws a net's plane: on the plane's own layer, which is closed to tracks. What it
-    /// joins by is the drops' business; how it meets the net's through-hole pads (a relief's spokes, and
-    /// whether other nets' vias have left enough of them) is modelled like a pour's (`relieve`).
+    /// The zones of a net that has a plane: the one that draws the plane, on its own layer, which is
+    /// closed to tracks, and the net's pours on the other layers. What the net joins by is the drops'
+    /// business; how these meet the net's pads (a relief's spokes, and whether other nets' copper has
+    /// left enough of them) is modelled like a pour's (`relieve`).
     fn plane_zones(&self, net: u16) -> Vec<&Zone> {
-        let Some(pl) = self.sc.nets[net as usize].plane else { return Vec::new() };
-        self.sc.copper.zones.iter().filter(|z| z.net == net && z.layer == pl && z.outline.len() >= 3 && !(z.locked && z.min_width == Some(0.0))).collect()
+        if self.sc.nets[net as usize].plane.is_none() {
+            return Vec::new();
+        }
+        self.sc.copper.zones.iter().filter(|z| z.net == net && z.outline.len() >= 3 && !(z.locked && z.min_width == Some(0.0))).collect()
     }
 
     /// What never changes about a net's pours; None for a net without one.
@@ -544,20 +547,23 @@ impl Router {
                 let (x, y) = self.f.node_near(p.0, p.1);
                 pm.comp[l * per + y * w + x] as usize
             };
-            for t in &self.jobs[j].tracks {
+            // (a plane net's tracks are its drops', a job each)
+            for t in self.jobs.iter().filter(|o| if plane { o.net == net } else { std::ptr::eq(*o, &self.jobs[j]) }).flat_map(|o| o.tracks.iter()) {
                 for &p in &t.pts {
                     things[piece_at(t.layer as usize, p)] += 1;
                 }
             }
-            if let (true, Some(pl)) = (plane, self.sc.nets[net as usize].plane) {
-                for &(x, y) in &self.net_vias[net as usize] {
-                    // (a via stands in its own antipad-free hole in the fill: the piece round it)
-                    let k = pl * per + y as usize * w + x as usize;
-                    let c = [k, k + 1, k - 1, k + w, k - w].iter().map(|&q| pm.comp[q]).find(|&c| c != 0).unwrap_or(0);
-                    things[c as usize] += 1;
-                }
-                for v in self.sc.copper.vias.iter().filter(|v| v.net == net) {
-                    things[piece_at(pl, (v.x, v.y))] += 1;
+            if plane {
+                for &pl in &self.plane_bases[&net].layers {
+                    for &(x, y) in &self.net_vias[net as usize] {
+                        // (a via stands in its own antipad-free hole in the fill: the piece round it)
+                        let k = pl * per + y as usize * w + x as usize;
+                        let c = [k, k + 1, k - 1, k + w, k - w].iter().map(|&q| pm.comp[q]).find(|&c| c != 0).unwrap_or(0);
+                        things[c as usize] += 1;
+                    }
+                    for v in self.sc.copper.vias.iter().filter(|v| v.net == net) {
+                        things[piece_at(pl, (v.x, v.y))] += 1;
+                    }
                 }
             }
             let half = self.w_min(net) / 2.0;
@@ -644,8 +650,9 @@ impl Router {
         laid
     }
 
-    /// One job a net whose plane a zone draws with reliefs: it routes nothing, and holds the short tracks
-    /// that `relieve` gives the net's starved reliefs on the plane's layer.
+    /// One job a net that has a plane and zones that meet its pads by reliefs (the plane's own, the net's
+    /// pours on the other layers): it routes nothing, and holds the short tracks that `relieve` gives the
+    /// net's starved reliefs.
     pub(crate) fn make_relief_jobs(&mut self) {
         for ni in 1..self.sc.nets.len() {
             if self.sc.nets[ni].pads.len() >= 2 && self.sc.nets[ni].in_scope && self.sc.nets[ni].plane.is_some() {

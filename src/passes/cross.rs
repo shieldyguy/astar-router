@@ -17,6 +17,8 @@ impl Router {
     /// inside a pour costs every other net `Cfg::cross_mul` steps more than a node outside (the cost
     /// term "pour"). Where pours overlap, the node is the pour's that KiCad fills there: the one of the
     /// highest priority. A pour on a layer that is a net's whole plane is not priced: no track goes there.
+    /// Nor is any other pour of a net that has a plane: the plane is what lies under the signals, and its
+    /// pours on the other layers fill what the tracks leave.
     /// The pour of a net joined off this board is its host's, and is taken to lie under the whole board.
     /// Nor is a place where every layer is poured: the price says which layer to cross on, and there
     /// none is better.
@@ -29,7 +31,7 @@ impl Router {
         let mut zones: Vec<usize> = (0..self.sc.copper.zones.len())
             .filter(|&k| {
                 let z = &self.sc.copper.zones[k];
-                z.net != 0 && z.outline.len() >= 3 && !(z.locked && z.min_width == Some(0.0)) && self.routable.contains(&z.layer)
+                z.net != 0 && z.outline.len() >= 3 && !(z.locked && z.min_width == Some(0.0)) && self.routable.contains(&z.layer) && self.sc.nets[z.net as usize].plane.is_none()
             })
             .collect();
         zones.sort_by_key(|&k| std::cmp::Reverse(self.sc.copper.zones[k].priority));

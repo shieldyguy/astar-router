@@ -166,19 +166,23 @@ every run.
    every layer is poured nothing is charged: there no layer is the better one to cross on.
    **The board is the declaration, and what it leaves unsaid the router plans** (`src/passes/ground.rs`).
    What a net's copper should be is read off the board first: a zone drawn for a net is its pour, a layer
-   given to a net is its plane. A ground the board draws nothing for gets what its designer would have
-   drawn: the first free inner layer as its plane, and on a board with no inner layer a pour over the
-   whole board on the side with fewer parts, relieved at its pads by 10 mil spokes over a 10 mil gap. The
-   board is then routed as if that had been drawn: every ground pad a via down, signals crossing the
-   pour no further than they must. The plan says so (`planned`), and the plane or pour is written to
-   the board as a zone. A plane meets its net's through-hole pins by the same reliefs (a plane the
+   given to a net is its plane. What the board leaves undrawn of its ground is drawn the house way:
+   the first free inner layer as its plane (where the board gives it no inner layer) and, over a
+   plane, a pour on each outer layer (where the board pours the ground on neither); on a board with
+   no inner layer, one pour on the side with fewer parts. Each is drawn over the whole board and
+   relieved at its pads by 10 mil spokes over a 10 mil gap. The board is then routed as if that had
+   been drawn: under a plane every ground pad goes a via down, and the outer pours fill what the
+   tracks leave (they are not priced to cross: the plane is what lies under the signals, and a pad
+   they leave fewer than two spokes gets a short track into them, 9). The plan says so (`planned`),
+   and each plane or pour is written to the board as a zone. A plane meets its net's through-hole pins by the same reliefs (a plane the
    board draws, by its own zone's): where other nets' pins or vias leave such a pin fewer than two
    spokes, it gets short tracks of its own on the plane's layer, as a pad in a pour does (9). `--plane 'GND=In1.Cu,+3V3=In2.Cu'` gives any net its layers outright (an inner layer is a
    plane, an outer one gets a pour; `--plane 'GND=In1.Cu+B.Cu'` is both). `--ground tracks` wires the
    ground as any net is, and the notes say so (`ground`).
    On the 29 house and fixture boards whose ground has nothing drawn, the planned pour cut the track by
    a fifth (5,859 mm to 4,589 mm) with the same nets joined, and KiCad's verdict after a refill was the
-   same on every one: no error and no open net that the wired board did not have.
+   same on every one: no error and no open net that the wired board did not have. The outer pours over
+   a plane change no track and no via, and KiCad's verdict on the 41 boards stays as it was.
    **Pairs** (`src/route/duo.rs`). A differential pair is two nets that run side by side between the two
    parts both have a pad on (the connector or its ESD array, the chip). Between them the pair is one
    thing in the negotiation: a centre line, searched as a net of its own that keeps half the pair's
@@ -229,8 +233,15 @@ every run.
 
 The plan to close these, and the rest of the distance to KRT, is in `plan/` (start at `plan/README.md`).
 
-- The ground and one rail get a plane or a pour; the other rails are track. A board with inner planes
-  gets no ground pour on its outer layers unless `--plane` asks for one.
+- The ground and one rail get a plane or a pour; the other rails are track.
+- Vias are not shared by plan: every pad of a plane net gets a via of its own, though the ground's outer
+  pours would let far fewer do (`--share` only prices a drop that ends on a via already there). A way
+  to say which pads share one is not there.
+- A two-layer board gets its ground poured on one side, not both. On both, a chip's ground pin beside
+  its exposed pad is left one spoke (its spoke and the pad's meet head on, which astar's picture of
+  the fill does not show), and KiCad faults it (`starved_thermal`).
+- Other nets' tracks are not kept off a relief's spokes by any price; a relief left one spoke gets a
+  track of its own only where a straight one from the pad reaches fill.
 - Copper already on the board is never lifted: a net whose old copper is in another's way is not
   routed again. The fill a zone was last given is not read; astar works the fill out itself (10).
 - A differential pair runs side by side on one layer only, and its halves are not length-matched; a
