@@ -103,6 +103,12 @@ pub(crate) fn plan(sc: &mut Scene, skip: bool) -> (Vec<Duo>, Vec<(u16, String)>)
             continue;
         }
         let two = |why: String| (p as u16, format!("routed as two nets, not as a pair: {}", why));
+        // a pair the board already carries track of is a designer's, or an earlier run's: what is open of
+        // it is finished as two nets, and no second run is laid beside the first
+        if sc.copper.tracks.iter().any(|t| !t.drawn && (t.net as usize == p || t.net as usize == n)) {
+            not.push((p as u16, "the board carries track of it already: no pair is laid, and what is open of it is routed as two nets".into()));
+            continue;
+        }
         let Some(e) = ends(sc, p, n) else {
             not.push(two("its two nets share fewer than two parts".into()));
             continue;

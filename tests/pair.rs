@@ -60,3 +60,22 @@ fn skipping_the_pairs_routes_them_as_plain_nets_and_says_nothing() {
     let p = plan(&scene(), &cfg);
     assert_eq!(said(&p), "");
 }
+
+#[test]
+fn a_pair_the_board_carries_track_of_is_not_laid_again() {
+    // the board as a first run left it: the plan's tracks written back as the scene's old copper
+    let j = scene();
+    let first = plan(&j, &Cfg::default());
+    let mut tracks = Vec::new();
+    for n in first.get("nets").arr() {
+        for t in n.get("tracks").arr() {
+            tracks.push(format!(r#"{{"net": "{}", "layer": "{}", "width": {}, "path": {}}}"#, n.get("name").s().unwrap(), t.get("layer").s().unwrap(), t.get("width").f().unwrap(), astar::json::write(t.get("path"))));
+        }
+    }
+    assert!(tracks.len() >= 2);
+    let text = astar::json::write(&j);
+    let text = format!("{}, \"copper\": {{\"tracks\": [{}]}}}}", text.trim_end().trim_end_matches('}'), tracks.join(", "));
+    let again = plan(&astar::json::parse(&text).unwrap(), &Cfg::default());
+    assert!(again.get("nets").arr().iter().all(|n| n.get("tracks").arr().is_empty()), "nothing is left to lay");
+    assert!(said(&again).contains("carries track of it already"), "{}", said(&again));
+}
