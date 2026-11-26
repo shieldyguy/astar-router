@@ -272,3 +272,7 @@ The plan to close these, and the rest of the distance to KRT, is in `plan/` (sta
                      for machines without braid-field    tests/         same.sh and golden/ (the bench five's
                      (BENCH_FIELD_PY=bench/shim)                        copper), scene.rs, lib.rs, cli.rs,
                                                                         fuzz.rs, scenes/ (the fixtures)
+
+## Licence
+
+Apache-2.0 (`LICENSE`, `NOTICE`).
